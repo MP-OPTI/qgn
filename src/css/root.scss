@@ -1,0 +1,98 @@
+// Variables
+$white: #ffff;
+$black: #000814; 
+$blue: #001D3D;
+$yellow: #FFD60A; 
+$red: #ff0a0a;
+$green: #0aff4b;
+
+// Media Queries
+$breakpoint-small: 576px;
+$breakpoint-medium: 768px;
+$breakpoint-large: 992px;
+$breakpoint-xlarge: 1200px;
+
+// Other
+$border-radius: 2rem;
+
+// Reset
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+html, body {
+  height: 100%;
+  color:$white;
+  font-size: 10px;
+  background-color: $black;
+  font-family: Arial, sans-serif;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+blockquote, q {
+  quotes: none;
+}
+
+blockquote::before, blockquote::after, q::before, q::after {
+  content: '';
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+a, button {
+  font-size: 1.6rem;
+  cursor: pointer;
+  border-radius: calc($border-radius/2);
+}
+
+h1    { font-size: 4rem;   }
+h2    { font-size: 3rem;   }
+h3    { font-size: 2rem    }
+p     { font-size: 1.6rem; }
+input { font-size: 1.6rem; }
+
+// Example usage of media queries
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+
+  @media (min-width: $breakpoint-small) {
+    max-width: 540px;
+  }
+
+  @media (min-width: $breakpoint-medium) {
+    max-width: 720px;
+  }
+
+  @media (min-width: $breakpoint-large) {
+    max-width: 960px;
+  }
+
+  @media (min-width: $breakpoint-xlarge) {
+    max-width: 1140px;
+  }
+}

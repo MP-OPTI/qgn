@@ -1,0 +1,115 @@
+// settings.scss
+
+.settings {
+    padding: 10rem 0;
+  
+    h2 {
+      display: block;
+      padding: 5rem 0;
+      margin: 2rem auto;
+      width: 100%;
+      @media (min-width: $breakpoint-medium) {
+        max-width: 40rem;
+      }
+    }
+  
+    p {
+      display: block;
+      padding: 5rem 0;
+      margin: 2rem auto;
+      width: 100%;
+      @media (min-width: $breakpoint-medium) {
+        max-width: 40rem;
+      }
+    }
+  
+    input {
+      font-size: 2rem;
+      display: block;
+      width: 100%;
+      padding: 2rem;
+      margin: 2rem auto;
+      color: $blue;
+      border-radius: calc($border-radius / 2);
+  
+      @media (min-width: $breakpoint-medium) {
+        max-width: 40rem;
+      }
+    }
+  
+    .confirm-delete {
+      p {
+        font-size: 2rem;
+        color: $red;
+      }
+    }
+  
+    .email-verification {
+      p {
+        font-size: 1.5rem;
+        color: $red;
+      }
+  
+      .verify-email-button {
+        background-color: $blue;
+        color: $white;
+        padding: 1rem 2rem;
+        margin: 1rem auto;
+        display: block;
+        border-radius: calc($border-radius / 2);
+  
+        @media (min-width: $breakpoint-medium) {
+          max-width: 40rem;
+        }
+      }
+    }
+  
+    button {
+      display: block;
+      width: 100%;
+      padding: 2rem;
+      margin: 4rem auto;
+      font-weight: 900;
+      background-color: $yellow;
+      border-radius: calc($border-radius / 2);
+  
+      @media (min-width: $breakpoint-medium) {
+        max-width: 40rem;
+      }
+  
+      &.confirm-button,
+      &.cancel-button {
+        margin: 3rem auto;
+        @media (min-width: $breakpoint-medium) {
+          max-width: 40rem;
+        }
+      }
+  
+      &.confirm-button {
+        color: $black;
+        background-color: $green;
+      }
+  
+      &.cancel-button {
+        margin: 2rem auto;
+        color: $white;
+        background-color: $blue;
+      }
+  
+      &.change-email-button {
+        margin: .5rem auto;
+        color: $black;
+        background-color: $green;
+      }
+  
+      &.delete-account-button {
+        color: $white;
+        background-color: $red;
+      }
+    }
+  
+    .change-email-form {
+      margin-bottom: 4rem;
+    }
+  }
+  

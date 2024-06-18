@@ -1,0 +1,446 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+html, body {
+  height: 100%;
+  color: white;
+  font-size: 10px;
+  background-color: #000814;
+  font-family: Arial, sans-serif;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+blockquote, q {
+  quotes: none;
+}
+
+blockquote::before, blockquote::after, q::before, q::after {
+  content: "";
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+a, button {
+  font-size: 1.6rem;
+  cursor: pointer;
+  border-radius: 1rem;
+}
+
+h1 {
+  font-size: 4rem;
+}
+
+h2 {
+  font-size: 3rem;
+}
+
+h3 {
+  font-size: 2rem;
+}
+
+p {
+  font-size: 1.6rem;
+}
+
+input {
+  font-size: 1.6rem;
+}
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+}
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+body {
+  padding: 2rem;
+}
+@media (min-width: 576px) {
+  body {
+    padding: 8rem;
+  }
+}
+
+.App {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "nav" "qr-container";
+  height: 100vh;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 4rem;
+  border-radius: 2rem;
+  background-color: white;
+}
+nav h1 a {
+  position: relative;
+  color: #000814;
+  margin: 0;
+  font-size: 4rem;
+  font-weight: 900;
+  top: -5px;
+}
+nav .nav-links {
+  display: flex;
+  gap: 1rem;
+  font-weight: 900;
+}
+nav .nav-links i {
+  display: none;
+}
+@media (min-width: 768px) {
+  nav .nav-links i {
+    display: inline-block;
+  }
+}
+nav .nav-links svg {
+  margin: 0 0.4rem 0 0.5rem;
+}
+nav a, nav button {
+  color: #000814;
+  margin-left: 1rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+}
+
+.qr-container {
+  grid-area: qr-container;
+}
+.qr-container .qr-generator {
+  margin: 100px 0 150px 0;
+}
+.qr-container .qr-generator input {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator input {
+    width: 40rem;
+  }
+}
+.qr-container .qr-generator button {
+  font-weight: 900;
+  margin: 2rem 0;
+  padding: 2rem;
+  width: 100%;
+  color: #000814;
+  background-color: #FFD60A;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator button {
+    width: auto;
+    margin: 0 10px;
+  }
+}
+.qr-container .qr-generator .qr-code-notloggedin {
+  display: block;
+  margin: 10rem 0;
+  border-radius: 2rem;
+}
+.qr-container .qr-generator .qr-code-notloggedin canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin: 2rem 0;
+  border-radius: 2rem;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator .qr-code-notloggedin canvas {
+    width: 40rem !important;
+  }
+}
+.qr-container .qr-generator .qr-code-notloggedin a {
+  display: inline-block;
+  width: auto;
+  margin: 1rem 0;
+  padding: 2rem 4rem;
+  color: #FFD60A;
+  background-color: #001D3D;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.qr-container .qr-codes {
+  display: grid;
+  margin-bottom: 20rem;
+}
+.qr-container .qr-codes .qr-codes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code {
+  display: block;
+  padding: 1rem;
+  border-radius: 2rem;
+  background-color: white;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: inline;
+  float: left;
+  margin-bottom: 20px;
+  border-radius: 2rem;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code a, .qr-container .qr-codes .qr-codes-grid .qr-code input {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code input {
+  border-radius: 0.6666666667rem;
+  border: solid 1px #001D3D;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code button {
+  display: inline;
+  width: 4rem;
+  margin: 2rem 1rem;
+  padding: 1rem;
+  float: right;
+  color: #000814;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code button.trash {
+  background-color: #ff0a0a;
+  color: white;
+}
+.qr-container .qr-codes .inittxt {
+  width: 100%;
+}
+
+/* Toast.css */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.toast {
+  background-color: white;
+  color: #000814;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  padding: 1rem 2rem;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  opacity: 0.8;
+  font-size: 2rem;
+  min-width: 200px;
+  text-align: center;
+}
+
+.toast.success {
+  background-color: #0aff4b;
+}
+
+.toast.error {
+  background-color: #ff0a0a;
+}
+
+.login, .register {
+  padding: 10rem 0;
+}
+.login h2, .register h2 {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .login h2, .register h2 {
+    max-width: 40rem;
+  }
+}
+.login input, .register input {
+  font-size: 2rem;
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 2rem auto;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .login input, .register input {
+    max-width: 40rem;
+  }
+}
+.login button, .register button {
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 4rem auto;
+  font-weight: 900;
+  background-color: #FFD60A;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .login button, .register button {
+    max-width: 40rem;
+  }
+}
+
+.settings {
+  padding: 10rem 0;
+}
+.settings h2 {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .settings h2 {
+    max-width: 40rem;
+  }
+}
+.settings p {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .settings p {
+    max-width: 40rem;
+  }
+}
+.settings input {
+  font-size: 2rem;
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 2rem auto;
+  color: #001D3D;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .settings input {
+    max-width: 40rem;
+  }
+}
+.settings .confirm-delete p {
+  font-size: 2rem;
+  color: #ff0a0a;
+}
+.settings .email-verification p {
+  font-size: 1.5rem;
+  color: #ff0a0a;
+}
+.settings .email-verification .verify-email-button {
+  background-color: #001D3D;
+  color: white;
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  display: block;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .settings .email-verification .verify-email-button {
+    max-width: 40rem;
+  }
+}
+.settings button {
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 4rem auto;
+  font-weight: 900;
+  background-color: #FFD60A;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .settings button {
+    max-width: 40rem;
+  }
+}
+.settings button.confirm-button, .settings button.cancel-button {
+  margin: 3rem auto;
+}
+@media (min-width: 768px) {
+  .settings button.confirm-button, .settings button.cancel-button {
+    max-width: 40rem;
+  }
+}
+.settings button.confirm-button {
+  color: #000814;
+  background-color: #0aff4b;
+}
+.settings button.cancel-button {
+  margin: 2rem auto;
+  color: white;
+  background-color: #001D3D;
+}
+.settings button.change-email-button {
+  margin: 0.5rem auto;
+  color: #000814;
+  background-color: #0aff4b;
+}
+.settings button.delete-account-button {
+  color: white;
+  background-color: #ff0a0a;
+}
+.settings .change-email-form {
+  margin-bottom: 4rem;
+}
+
+/*# sourceMappingURL=style.css.map */

@@ -1,0 +1,40 @@
+//login.scss
+
+.login, .register {
+    padding: 10rem 0;
+
+    h2 {
+        display:block;
+        padding: 5rem 0;
+        margin: 2rem auto;
+        width: 100%;
+        @media (min-width: $breakpoint-medium) {
+            max-width: 40rem;
+        }
+    }
+    input {
+        font-size: 2rem;
+        display:block;
+        width: 100%;
+        padding: 2rem;
+        margin: 2rem auto;
+        border-radius: calc($border-radius/2);
+
+        @media (min-width: $breakpoint-medium) {
+            max-width: 40rem;
+        }
+    }
+    button {
+        display:block;
+        width: 100%;
+        padding: 2rem;
+        margin: 4rem auto;
+        font-weight: 900;
+        background-color: $yellow;
+        border-radius: calc($border-radius/2);
+
+        @media (min-width: $breakpoint-medium) {
+            max-width: 40rem;
+        }
+    }
+}
