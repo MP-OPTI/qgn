@@ -1,3 +1,4 @@
+//sanitizeInput.js
 import DOMPurify from 'dompurify';
 
 export const sanitizeInput = (input) => {

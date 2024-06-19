@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { auth } from './firebase';
 import { useNavigate } from 'react-router-dom';
-import QRCodeGenerator from './QRCodeGenerator';
-import Register from './register';
-import Login from './login';
-import { ToastProvider, useToast } from './toast';
+import QRCodeGenerator from './pages/QRCodeGenerator';
+import Register from './pages/register';
+import Login from './pages/login';
+import Settings from './pages/settings';
+import { ToastProvider, useToast } from './contexts/ToastProvider';
+import { auth } from './services/firebase';
 import './fontawesome';
-import Settings from './settings'; 
 
 const MainApp = () => {
   const [user, setUser] = useState(null);
@@ -52,10 +52,9 @@ const MainApp = () => {
           <Route path="/" element={<QRCodeGenerator />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/settings" element={<Settings />} /> {/* Add settings route */}
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </div>
-      
     </div>
   );
 };

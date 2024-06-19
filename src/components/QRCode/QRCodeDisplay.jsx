@@ -2,8 +2,7 @@
 import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import './fontawesome';
-import qLogo from './assets/q-logo.png';
+import qLogo from '../../assets/q-logo.png';
 
 const truncateUrl = (url) => {
   return url.length > 20 ? `${url.slice(0, 20)}...` : url;
@@ -42,13 +41,10 @@ const QRCodeDisplay = ({ qrCode, handleRemove, handleEdit, editingId, editingUrl
 
     {editingId !== qrCode.id && (
       <>
-
         <button className="trash" onClick={() => handleRemove(qrCode.id)}><FontAwesomeIcon icon="trash" /></button>
-        
         <button onClick={() => handleEdit(qrCode.id, qrCode.value)}>
           <FontAwesomeIcon icon="pen-to-square" />
         </button>
-        
       </>
     )}
   </div>

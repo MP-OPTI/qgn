@@ -111,5 +111,28 @@
     .change-email-form {
       margin-bottom: 4rem;
     }
+
+    .password-change {
+      h3 {
+          display: block;
+          padding: 5rem 0;
+          margin: 2rem auto;
+          width: 100%;
+          @media (min-width: $breakpoint-medium) {
+            max-width: 40rem;
+        }
+      }
+    }
+    .delete-account {
+      h3 {
+          display: block;
+          padding: 5rem 0;
+          margin: 2rem auto;
+          width: 100%;
+          @media (min-width: $breakpoint-medium) {
+            max-width: 40rem;
+        }
+      }
+    }
   }
   

@@ -1,26 +1,24 @@
-//QRCodeGenerator.jsx
-import React, { useState, useEffect } from 'react';
+//useQRCode.js
+import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
-import { db, auth } from './firebase';
-import QRCodeForm from './QRCodeForm';
-import QRCodeDisplay from './QRCodeDisplay';
-import { sanitizeInput } from './utils/sanitizeInput';
+import { db, auth } from '../services/firebase';
+import { sanitizeInput } from '../utils/sanitizeInput';
 
-const QRCodeGenerator = () => {
+export const useQRCode = (user) => {
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingUrl, setEditingUrl] = useState('');
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!user) return;
 
     setLoading(true);
 
     const q = query(
       collection(db, 'qrCodes'),
-      where('uid', '==', auth.currentUser.uid),
-      orderBy('createdAt', 'desc') // Order by createdAt in descending order
+      where('uid', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const qrCodesData = [];
@@ -32,14 +30,14 @@ const QRCodeGenerator = () => {
     });
 
     return () => unsubscribe();
-  }, [auth.currentUser]);
+  }, [user]);
 
   const handleSubmit = async (url) => {
     const sanitizedUrl = sanitizeInput(url);
-    if (sanitizedUrl.trim() && auth.currentUser) {
+    if (sanitizedUrl.trim() && user) {
       try {
         await addDoc(collection(db, 'qrCodes'), {
-          uid: auth.currentUser.uid,
+          uid: user.uid,
           value: sanitizedUrl,
           createdAt: new Date(),
         });
@@ -88,41 +86,15 @@ const QRCodeGenerator = () => {
     }
   };
 
-  return (
-    <div className="qr-container">
-      <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleSubmit} showGenerateButton={true} isLoggedIn={!!auth.currentUser} />
-      </div>
-      <div className="qr-codes">
-        {auth.currentUser && (
-          <div>
-            {loading ? (
-              <p>Loading QR codes...</p>
-            ) : (
-              <div className="qr-codes-grid">
-                {qrCodes.length > 0 ? (
-                  qrCodes.map((qrCode) => (
-                    <QRCodeDisplay
-                      key={qrCode.id}
-                      qrCode={qrCode}
-                      handleRemove={handleRemove}
-                      handleEdit={handleEdit}
-                      editingId={editingId}
-                      editingUrl={editingUrl}
-                      setEditingUrl={setEditingUrl}
-                      handleEditSubmit={handleEditSubmit}
-                    />
-                  ))
-                ) : (
-                  <p className="inittxt">No QR codes yet... <br></br><br></br>Start by creating some above. You can make a QR Code with any text or URL.</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    setEditingUrl,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  };
 };
-
-export default QRCodeGenerator;

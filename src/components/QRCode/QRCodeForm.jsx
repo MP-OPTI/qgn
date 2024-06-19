@@ -1,8 +1,8 @@
 //QRCodeForm.jsx^
 import React, { useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
-import qLogo from './assets/q-logo.png';
-import { sanitizeInput } from './utils/sanitizeInput';
+import qLogo from '../../assets/q-logo.png';
+import { sanitizeInput } from '../../utils/sanitizeInput';
 
 const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
   const [url, setUrl] = useState('');
