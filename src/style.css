@@ -178,11 +178,13 @@ nav a, nav button {
 .qr-container .qr-generator input {
   width: 100%;
   padding: 2rem;
+  margin: 1.5rem 0;
   border-radius: 1rem;
 }
 @media (min-width: 992px) {
   .qr-container .qr-generator input {
     width: 40rem;
+    margin: 1.5rem;
   }
 }
 .qr-container .qr-generator button {
@@ -233,7 +235,7 @@ nav a, nav button {
 .qr-container .qr-codes .qr-codes-grid {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
 .qr-container .qr-codes .qr-codes-grid .qr-code {
@@ -289,11 +291,15 @@ nav a, nav button {
 }
 .qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag {
   display: inline-block;
-  padding: 1rem;
+  padding: 0.8rem;
+  margin: 0.5rem;
   border-radius: 1rem;
   font-size: 1.6rem;
   color: #000814;
   background-color: #ffd60a;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag:first-child {
+  margin: 0.5rem 0;
 }
 .qr-container .qr-codes .qr-codes-grid .qr-code button {
   display: inline;

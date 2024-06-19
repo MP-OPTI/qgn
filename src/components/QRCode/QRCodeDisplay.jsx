@@ -43,10 +43,10 @@ const QRCodeDisplay = ({
       
       <h3>{qrCode.title}</h3>
 
-      <a href={qrCode.value} target="_blank">{truncateUrl(qrCode.value)}</a>
+      <a href={qrCode.value} target="_blank"><FontAwesomeIcon icon="link" /> {truncateUrl(qrCode.value)}</a>
       
       <div className="tags-container">
-        <div className="tag-icon"><FontAwesomeIcon icon="tag" /></div>
+        {/*<div className="tag-icon"><FontAwesomeIcon icon="tag" /></div>*/}
         {(qrCode.tags || []).map((tag, index) => (
           <div key={index} className="tag">{tag}</div>
         ))}

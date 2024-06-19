@@ -23,24 +23,33 @@ const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
   return (
     <>
       <form onSubmit={onSubmit}>
+        
+          <input
+            type="text"
+            placeholder="Enter URL for the QR Code"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+        
+        {isLoggedIn && (
         <input
           type="text"
-          placeholder="Enter title"
+          placeholder="Enter title/name"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <input
-          type="text"
-          placeholder="Enter URL or text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
+
+        )}
+        {isLoggedIn && (
         <input
           type="text"
           placeholder="Tag1, Tag2, etc."
           value={tags}
           onChange={(e) => setTags(e.target.value)}
         />
+        )}
+      
+
         {showGenerateButton && <button type="submit">Generate QR Code</button>}
       </form>
       {!isLoggedIn && submittedUrl && (
