@@ -9,12 +9,14 @@ body {
 
 .App {
   display: grid;
+  row-gap: 5rem;
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 10rem 10rem auto;
   grid-template-areas:
     "nav"
-    "qr-container";
-  height: 100vh;
+    "hero"
+    "qr";
+  min-height: 100vh;
 }
 
 nav {
@@ -32,7 +34,7 @@ nav {
       margin: 0;
       font-size: 4rem;
       font-weight: 900;
-      top:-5px;//Adjusting for font-weight
+      top: -5px; // Adjusting for font-weight
     }
   }
 
@@ -42,9 +44,9 @@ nav {
     font-weight: 900;
 
     i {
-      display:none;
+      display: none;
       @media (min-width: $breakpoint-medium) {
-        display:inline-block;
+        display: inline-block;
       }
     }
     svg {
@@ -61,20 +63,52 @@ nav {
   }
 }
 
+.hero {
+  grid-area: hero;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  height: 100%;
+}
+
+.qr {
+  grid-area: qr;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+}
+
 .qr-container {
-  grid-area: qr-container;
-
   .qr-generator {
-    margin: 100px 0 150px 0;
-
     input {
+      display: block;
       width: 100%;
       padding: 2rem;
       margin: 1.5rem 0;
-      border-radius: calc($border-radius/2);
+      border-radius: calc($border-radius / 2);
+
       @media (min-width: $breakpoint-large) {
         width: 40rem;
-        margin: 1.5rem;
       }
     }
 
@@ -87,7 +121,6 @@ nav {
       background-color: $yellow;
       @media (min-width: $breakpoint-large) {
         width: auto;
-        margin: 0 10px;
       }
     }
 
@@ -95,11 +128,12 @@ nav {
       display: block;
       margin: 10rem 0;
       border-radius: $border-radius;
+      background-color: $white; // Ensure background covers whole element
 
       canvas {
         width: 100% !important;
         height: auto !important;
-        display:block;
+        display: block;
         margin: 2rem 0;
         border-radius: $border-radius;
 
@@ -109,14 +143,61 @@ nav {
       }
 
       a {
-        display:inline-block;
-        width:auto;
+        display: inline-block;
+        width: auto;
         margin: 1rem 0;
         padding: 2rem 4rem;
         color: $yellow;
         background-color: $blue;
         text-decoration: underline;
         word-break: break-all;
+      }
+
+      .message-to-user {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 4rem;
+        border-radius: $border-radius;
+        background-color: $yellow;
+        line-height: 2.5rem;
+        font-size: 2rem;
+        font-weight: 900;
+        color: $black;
+        animation: slideIn 0.5s forwards;
+
+        &.slide-out {
+          animation: slideOut 0.5s forwards;
+        }
+
+        @media (min-width: $breakpoint-large) {
+          width: 60rem !important;
+        }
+
+        p {
+          a {
+            color: inherit;
+            padding: 0;
+            margin: 0;
+            background: unset;
+          }
+        }
+
+        .close-button {
+          position: absolute;
+          top: -3rem;
+          right: -.5rem;
+          background: none;
+          border: none;
+          font-size: 3rem;
+          cursor: pointer;
+          color: $black;
+        }
       }
     }
   }
@@ -131,34 +212,41 @@ nav {
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
 
-      .qr-code {
+      .qr-code-wrapper {
         display: block;
         padding: 1rem;
         border-radius: $border-radius;
         background-color: $white;
-  
+      }
+
+      .qr-code {
+        display: block;
+        padding: 1rem;
+        border-radius: $border-radius;
+        background-color: inherit; // Maintain background from parent
+
         canvas {
           width: 100% !important;
           height: auto !important;
-          display:inline;
-          float:left;
+          display: inline;
+          float: left;
           margin-bottom: 20px;
           border-radius: $border-radius;
         }
 
         h3 {
-          display:inline;
-          float:left;
-          width:90%;
+          display: inline;
+          float: left;
+          width: 90%;
           margin: 0 1rem;
           padding: 1rem;
           color: $blue;
         }
-  
+
         a, input {
-          display:inline;
-          float:left;
-          width:90%;
+          display: inline;
+          float: left;
+          width: 90%;
           margin: 0 1rem;
           padding: 1rem;
           color: $blue;
@@ -167,52 +255,51 @@ nav {
         }
 
         input {
-          border-radius: calc($border-radius/3);
+          border-radius: calc($border-radius / 3);
           border: solid 1px $blue;
         }
 
         .tags-container {
-          display:inline;
-          float:left;
-          width:90%;
+          display: inline;
+          float: left;
+          width: 90%;
           margin: 0 1rem;
           padding: 1rem;
 
           .tag-icon {
-            display:inline;
-            float:left;
-            width:90%;
+            display: inline;
+            float: left;
+            width: 90%;
             margin: 0 1rem;
             padding: 1rem;
             color: $blue;
           }
           .tag {
-            display:inline-block;
+            display: inline-block;
             padding: .8rem;
             margin: .5rem;
-            border-radius: calc($border-radius/2);
+            border-radius: calc($border-radius / 2);
             font-size: 1.6rem;
-            color:$black;
+            color: $black;
             background-color: rgba($yellow, 1);
             &:first-child {
               margin: .5rem 0;
             }
           }
         }
-  
+
         button {
-          display:inline;
-          width:4rem;
+          display: inline;
+          width: 4rem;
           margin: 2rem 1rem;
           padding: 1rem;
-          float:right;
+          float: right;
           color: $black;
           &.trash {
             background-color: $red;
             color: $white;
           }
         }
-
 
         .edit-qr-code {
           position: absolute;
@@ -227,7 +314,7 @@ nav {
           border-radius: $border-radius;
           backdrop-filter: blur(1rem);
           background: rgba($white, 0.5);
-        
+
           label {
             font-weight: 900;
             font-size: 1.6rem;
@@ -235,7 +322,6 @@ nav {
             margin: 1rem 2rem;
           }
         }
-
       }
     }
 

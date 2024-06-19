@@ -12,7 +12,7 @@ import { ToastProvider, useToast } from './contexts/ToastProvider';
 import { auth } from './services/firebase';
 import './fontawesome';
 
-const MainApp = () => {
+const MainApp = ({ isLoggedIn }) => {
   const [user, setUser] = useState(null);
   const addToast = useToast();
   const navigate = useNavigate();
@@ -47,6 +47,14 @@ const MainApp = () => {
           {user && <button onClick={handleLogout}><FontAwesomeIcon icon="right-from-bracket" /></button>}
         </div>
       </nav>
+
+      {!isLoggedIn && (
+        <div className="hero">
+          <h1>Stop typing, start scanning</h1>
+          <h2>Paste your link below and get your QR instantly!</h2>
+        </div>
+      )}
+
       <div className="qr">
         <Routes>
           <Route path="/" element={<QRCodeGenerator />} />

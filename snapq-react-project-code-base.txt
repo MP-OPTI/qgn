@@ -1,0 +1,1758 @@
+// File: src\App.jsx
+//App.jsx
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useNavigate } from 'react-router-dom';
+import QRCodeGenerator from './pages/QRCodeGenerator';
+import Register from './pages/register';
+import Login from './pages/login';
+import Settings from './pages/settings';
+import { ToastProvider, useToast } from './contexts/ToastProvider';
+import { auth } from './services/firebase';
+import './fontawesome';
+
+const MainApp = ({ isLoggedIn }) => {
+  const [user, setUser] = useState(null);
+  const addToast = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      addToast('You are now logged out!', 'success');
+      navigate('/');
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  return (
+    <div className="App">
+      <nav>
+        <h1><Link to="/">snapq</Link></h1>
+        <div className="nav-links">
+          {!user && <Link to="/register"><i>Register</i> <FontAwesomeIcon icon="user-plus" /></Link>}
+          {!user && <Link to="/login"><i>Login</i> <FontAwesomeIcon icon="right-to-bracket" /></Link>}
+          {user && <Link to="/settings"><FontAwesomeIcon icon="user" /></Link>}
+          {user && <button onClick={handleLogout}><FontAwesomeIcon icon="right-from-bracket" /></button>}
+        </div>
+      </nav>
+
+      {!isLoggedIn && (
+        <div className="hero">
+          <h1>Stop typing, start scanning</h1>
+          <h2>Paste your link below and get your QR instantly!</h2>
+        </div>
+      )}
+
+      <div className="qr">
+        <Routes>
+          <Route path="/" element={<QRCodeGenerator />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </div>
+    </div>
+  );
+};
+
+const App = () => (
+  <ToastProvider>
+    <Router>
+      <MainApp />
+    </Router>
+  </ToastProvider>
+);
+
+export default App;
+
+
+// File: src\components\Login\LoginForm.jsx
+//LoginForm.jsx
+import React from 'react';
+
+const LoginForm = ({ email, setEmail, password, setPassword, handleSubmit }) => {
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button type="submit">Login</button>
+    </form>
+  );
+};
+
+export default LoginForm;
+
+
+// File: src\components\QRCode\QRCodeDisplay.jsx
+// File: src/components/QRCode/QRCodeDisplay.jsx
+
+import React from 'react';
+import { QRCode } from 'react-qrcode-logo';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import qLogo from '../../assets/q-logo.png';
+import useDownloadQRCode from '../../hooks/useDownloadQRCode';
+import { useSpring, animated } from '@react-spring/web';
+
+const truncateUrl = (url) => {
+  return url.length > 20 ? `${url.slice(0, 20)}...` : url;
+};
+
+const QRCodeDisplay = ({
+  qrCode,
+  handleRemove,
+  handleEdit,
+  editingId,
+  editingUrl,
+  editingTitle,
+  editingTags,
+  setEditingUrl,
+  setEditingTitle,
+  setEditingTags,
+  handleEditSubmit
+}) => {
+  const { qrRef, downloadQRCode } = useDownloadQRCode();
+
+  const springProps = useSpring({
+    from: { opacity: 0, transform: 'scale(0.5)' },
+    to: { opacity: 1, transform: 'scale(1)' },
+    config: { tension: 200, friction: 10 },
+  });
+
+  return (
+    <div className="qr-code" key={qrCode.id} ref={qrRef}>
+      <animated.div style={springProps}>
+        <QRCode
+          value={qrCode.value}
+          size={300}
+          bgColor="#ffffff"
+          fgColor="#000000"
+          qrStyle="dots"
+          eyeRadius={[
+            { outer: 10, inner: 0 },
+            { outer: 10, inner: 0 },
+            { outer: 10, inner: 0 }
+          ]}
+          logoImage={qLogo}
+          logoWidth={50}
+        />
+        
+        <h3>{qrCode.title}</h3>
+
+        <a href={qrCode.value} target="_blank"><FontAwesomeIcon icon="link" /> {truncateUrl(qrCode.value)}</a>
+        
+        <div className="tags-container">
+          {(qrCode.tags || []).map((tag, index) => (
+            <div key={index} className="tag">{tag}</div>
+          ))}
+        </div>
+
+        {editingId === qrCode.id && (
+          <form onSubmit={handleEditSubmit} className="edit-qr-code">
+            <label>Title</label>
+            <input
+              type="text"
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              placeholder="Title"
+              style={{ marginBottom: '10px' }}
+            />
+            <label>QR Code</label>
+            <input
+              type="text"
+              value={editingUrl}
+              onChange={(e) => setEditingUrl(e.target.value)}
+              placeholder="URL"
+              style={{ marginBottom: '10px' }}
+            />
+            <label>Tags</label>
+            <input
+              type="text"
+              value={editingTags}
+              onChange={(e) => setEditingTags(e.target.value)}
+              placeholder="Tags (comma separated)"
+              style={{ marginBottom: '10px' }}
+            />
+            <div>
+              <button className="green" type="submit" style={{ marginRight: '5px' }}><FontAwesomeIcon icon="check" /></button>
+              <button className="black" onClick={() => handleEdit(null, '', '', '')}><FontAwesomeIcon icon="xmark" /></button>
+            </div>
+          </form>
+        )}
+
+        <div>
+          <button className="trash" onClick={() => handleRemove(qrCode.id)}><FontAwesomeIcon icon="trash" /></button>
+          <button onClick={() => handleEdit(qrCode.id, qrCode.value, qrCode.title, qrCode.tags || [])}>
+            <FontAwesomeIcon icon="pen-to-square" />
+          </button>
+          <button onClick={() => downloadQRCode(qrCode)}>
+            <FontAwesomeIcon icon="download" />
+          </button>
+        </div>
+      </animated.div>
+    </div>
+  );
+};
+
+export default QRCodeDisplay;
+
+
+// File: src\components\QRCode\QRCodeForm.jsx
+//QRCodeForm.jsx
+import React, { useState, useEffect } from 'react';
+import { QRCode } from 'react-qrcode-logo';
+import qLogo from '../../assets/q-logo.png';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { sanitizeInput } from '../../utils/sanitizeInput';
+
+const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
+  const [url, setUrl] = useState('');
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState('');
+  const [submittedUrl, setSubmittedUrl] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
+  const [animateOut, setAnimateOut] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('hideMessage')) {
+      setTimeout(() => {
+        setShowMessage(true); // Show the message with a delay
+      }, 3000); // 3-second delay before showing the message
+    }
+  }, []);
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const sanitizedUrl = sanitizeInput(url);
+    setSubmittedUrl(sanitizedUrl); // Store the sanitized URL to display the QR code
+    handleSubmit(sanitizedUrl, title, tags);
+    setUrl('');
+    setTitle('');
+    setTags('');
+  };
+
+  const handleCloseMessage = () => {
+    setAnimateOut(true);
+    setTimeout(() => {
+      setShowMessage(false);
+      setAnimateOut(false);
+      localStorage.setItem('hideMessage', 'true'); // Set item in localStorage
+    }, 500); // Duration of the slideOut animation
+  };
+
+  return (
+    <>
+      <form onSubmit={onSubmit}>
+        <input
+          type="text"
+          placeholder="Enter URL for the QR Code"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        
+        {isLoggedIn && (
+          <input
+            type="text"
+            placeholder="Enter title/name"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        )}
+        
+        {isLoggedIn && (
+          <input
+            type="text"
+            placeholder="Tag1, Tag2, etc."
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+          />
+        )}
+      
+        {showGenerateButton && <button type="submit">Generate QR Code</button>}
+      </form>
+      
+      {!isLoggedIn && submittedUrl && (
+        <div className="qr-code-notloggedin">
+          <QRCode
+            value={submittedUrl}
+            size={256}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            qrStyle="dots"
+            eyeRadius={[
+              { outer: 10, inner: 0 },
+              { outer: 10, inner: 0 },
+              { outer: 10, inner: 0 }
+            ]}
+            logoImage={qLogo}
+            logoWidth={50}
+          />
+          <a href={submittedUrl} target="_blank">{submittedUrl}</a>
+          {showMessage && (
+            <div className={`message-to-user ${animateOut ? 'slide-out' : 'slide-in'}`}>
+              <button className="close-button" onClick={handleCloseMessage}><FontAwesomeIcon icon="xmark" /></button>
+              <p>Want to save your QR Code? <a href="/register">Register</a> as a user, to save and download all your QR Codes!</p>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default QRCodeForm;
+
+
+// File: src\components\QRCode\QRCodeList.jsx
+// File: src/components/QRCode/QRCodeList.jsx
+
+import React from 'react';
+import QRCodeDisplay from './QRCodeDisplay';
+import { useTransition, animated } from '@react-spring/web';
+
+const QRCodeList = ({
+  qrCodes,
+  editingId,
+  editingUrl,
+  editingTitle,
+  editingTags,
+  setEditingUrl,
+  setEditingTitle,
+  setEditingTags,
+  handleRemove,
+  handleEdit,
+  handleEditSubmit
+}) => {
+  const transitions = useTransition(qrCodes, {
+    keys: qrCode => qrCode.id,
+    from: { opacity: 0, transform: 'scale(0.5)' },
+    enter: { opacity: 1, transform: 'scale(1)' },
+    leave: { opacity: 0, transform: 'scale(0.5)' },
+    trail: 100, // delay between each item
+  });
+
+  return (
+    <div className="qr-codes-grid">
+      {transitions((style, qrCode) => (
+        <animated.div style={style} className="qr-code-wrapper">
+          <QRCodeDisplay
+            key={qrCode.id}
+            qrCode={qrCode}
+            handleRemove={handleRemove}
+            handleEdit={handleEdit}
+            editingId={editingId}
+            editingUrl={editingUrl}
+            editingTitle={editingTitle}
+            editingTags={editingTags}
+            setEditingUrl={setEditingUrl}
+            setEditingTitle={setEditingTitle}
+            setEditingTags={setEditingTags}
+            handleEditSubmit={handleEditSubmit}
+          />
+        </animated.div>
+      ))}
+    </div>
+  );
+};
+
+export default QRCodeList;
+
+
+// File: src\components\Register\RegisterForm.jsx
+//RegisterForm.jsx
+import React from 'react';
+
+const RegisterForm = ({ email, setEmail, password, setPassword, handleSubmit }) => {
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button type="submit">Register</button>
+    </form>
+  );
+};
+
+export default RegisterForm;
+
+
+// File: src\components\Settings\AccountDeletion.jsx
+//AccountDeletion.jsx
+import React, { useState } from 'react';
+import { deleteUser } from 'firebase/auth';
+import { useToast } from '../../contexts/ToastProvider';
+
+const AccountDeletion = ({ user, navigate, addToast }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    try {
+      if (user) {
+        await deleteUser(user);
+        addToast('Account deleted successfully!', 'success');
+        navigate('/');
+      }
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  return (
+    <div className="delete-account">
+      <h3>Account deletion</h3>
+      {!confirmDelete ? (
+        <button onClick={() => setConfirmDelete(true)} className="delete-account-button">
+          Delete Account
+        </button>
+      ) : (
+        <div className="confirm-delete">
+          <p>If you delete your account, you'll lose all your saved QR codes and you won't be able to get it back.</p>
+          <button onClick={handleDeleteAccount} className="confirm-button">Yes</button>
+          <button onClick={() => setConfirmDelete(false)} className="cancel-button">No</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AccountDeletion;
+
+
+// File: src\components\Settings\EmailStatus.jsx
+//EmailStatus.jsx
+import React, { useState, useEffect } from 'react';
+import { sendEmailVerification, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { auth } from '../../services/firebase';
+import { useToast } from '../../contexts/ToastProvider';
+
+const EmailStatus = ({ user, emailVerified, newEmail, setNewEmail, currentPassword, setCurrentPassword, handleCancelEdit }) => {
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const addToast = useToast();
+
+  useEffect(() => {
+    let timer;
+    if (!emailVerified && verificationSent) {
+      timer = setInterval(async () => {
+        setCountdown((prevCountdown) => (prevCountdown <= 1 ? 5 : prevCountdown - 1));
+        if (countdown <= 1) {
+          try {
+            if (user) {
+              await user.reload();
+              if (user.emailVerified) {
+                addToast('Email verified!', 'success');
+                window.location.reload();
+              }
+            }
+          } catch (error) {
+            addToast(error.message, 'error');
+          }
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(timer);
+  }, [user, emailVerified, verificationSent, countdown, addToast]);
+
+  const handleSendVerificationEmail = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await sendEmailVerification(user);
+        setVerificationSent(true);
+        addToast('Verification email sent to your current email. Please check your inbox.', 'success');
+      }
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  const handleReauthenticate = async (e) => {
+    e.preventDefault();
+    try {
+      const user = auth.currentUser;
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      addToast('Re-authentication successful. Please proceed to verify your new email.', 'success');
+      handleSendVerificationEmail();
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updateEmail(user, newEmail);
+        await sendEmailVerification(user);
+        addToast('New email set and verification email sent to new address. Please check your inbox.', 'success');
+        setEditingEmail(false);
+        setVerificationSent(true);
+      }
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  return (
+    <div className="email-status">
+      <p>Email Status: {emailVerified ? 'Verified' : 'Not Verified'}</p>
+      <div>
+        <input
+          type="email"
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+          disabled={!editingEmail || verificationSent}
+          placeholder="Enter new email"
+        />
+        {!editingEmail ? (
+          <button onClick={() => setEditingEmail(true)} className="edit-email-button">
+            Edit Email
+          </button>
+        ) : (
+          <>
+            {!verificationSent ? (
+              <>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  required
+                />
+                <button onClick={handleReauthenticate} className="verify-email-button">
+                  Verify Email
+                </button>
+              </>
+            ) : (
+              <>
+                <p>Verification email sent. Please check your inbox.</p>
+                <p>Checking again in {countdown} seconds...</p>
+              </>
+            )}
+            <button onClick={handleCancelEdit} className="cancel-button">
+              Cancel
+            </button>
+          </>
+        )}
+      </div>
+      {emailVerified && verificationSent && (
+        <button onClick={handleChangeEmail} className="change-email-button">
+          Change Email
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default EmailStatus;
+
+
+// File: src\components\Settings\PasswordChange.jsx
+//PasswordChange.jsx
+
+import React, { useState } from 'react';
+import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
+import { auth } from '../../services/firebase';
+import { useToast } from '../../contexts/ToastProvider';
+
+const PasswordChange = ({ currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmNewPassword, setConfirmNewPassword, handleCancelEdit }) => {
+  const [editingPassword, setEditingPassword] = useState(false);
+  const addToast = useToast();
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmNewPassword) {
+      addToast('Passwords do not match.', 'error');
+      return;
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPassword);
+        addToast('Password updated successfully!', 'success');
+        setEditingPassword(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      }
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  return (
+    <div className="password-change">
+      <h3>Change Password</h3>
+      <div>
+        <input
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          placeholder="Enter current password"
+          required
+        />
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          placeholder="Enter new password"
+          required
+        />
+        <input
+          type="password"
+          value={confirmNewPassword}
+          onChange={(e) => setConfirmNewPassword(e.target.value)}
+          placeholder="Confirm new password"
+          required
+        />
+        {!editingPassword ? (
+          <button onClick={() => setEditingPassword(true)} className="edit-password-button">
+            Change Password
+          </button>
+        ) : (
+          <>
+            <button onClick={handleChangePassword} className="change-password-button">
+              Update Password
+            </button>
+            <button onClick={handleCancelEdit} className="cancel-button">
+              Cancel
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PasswordChange;
+
+
+// File: src\contexts\ToastProvider.jsx
+// Toast.jsx
+import React, { useContext, useState } from 'react';
+
+const ToastContext = React.createContext();
+
+export const useToast = () => useContext(ToastContext);
+
+export const ToastProvider = ({ children }) => {
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'success') => {
+    const id = Date.now();
+    setToasts([...toasts, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
+    }, 4000); // Toast will disappear after 3 seconds
+  };
+
+  return (
+    <ToastContext.Provider value={addToast}>
+      {children}
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast ${toast.type}`}>
+            {toast.message}
+          </div>
+        ))}
+      </div>
+    </ToastContext.Provider>
+  );
+};
+
+
+// File: src\fontawesome.js
+// src/fontawesome.js
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fas } from '@fortawesome/free-solid-svg-icons';
+
+library.add(fas);
+
+
+// File: src\hooks\useAuth.js
+// useAuth.js
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../services/firebase';
+
+export const useAuth = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  return { user, loading };
+};
+
+
+// File: src\hooks\useDownloadQRCode.js
+//useDownloadQRCode.js
+import { useRef } from 'react';
+
+const useDownloadQRCode = () => {
+  const qrRef = useRef();
+
+  const downloadQRCode = (qrCode) => {
+    const canvas = qrRef.current.querySelector('canvas');
+    const pngUrl = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+    let downloadLink = document.createElement('a');
+    downloadLink.href = pngUrl;
+    downloadLink.download = `${qrCode.title || qrCode.value}.png`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
+
+  return { qrRef, downloadQRCode };
+};
+
+export default useDownloadQRCode;
+
+
+// File: src\hooks\useQRCode.js
+//useQRCode.js
+import { useState, useEffect } from 'react';
+import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { sanitizeInput } from '../utils/sanitizeInput';
+
+export const useQRCode = (user) => {
+  const [qrCodes, setQrCodes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editingUrl, setEditingUrl] = useState('');
+  const [editingTitle, setEditingTitle] = useState('');
+  const [editingTags, setEditingTags] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+
+    setLoading(true);
+
+    const q = query(
+      collection(db, 'qrCodes'),
+      where('uid', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const qrCodesData = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        qrCodesData.push({ ...data, id: doc.id, tags: data.tags || [] });
+      });
+      setQrCodes(qrCodesData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleSubmit = async (url, title, tags) => {
+    const sanitizedUrl = sanitizeInput(url);
+    if (sanitizedUrl.trim() && user) {
+      try {
+        await addDoc(collection(db, 'qrCodes'), {
+          uid: user.uid,
+          value: sanitizedUrl,
+          title: title || 'Untitled',
+          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          createdAt: new Date(),
+        });
+      } catch (error) {
+        console.error("Error adding document: ", error);
+        alert(error.message);
+      }
+    }
+  };
+
+  const handleRemove = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'qrCodes', id));
+    } catch (error) {
+      console.error("Error removing document: ", error);
+      alert(error.message);
+    }
+  };
+
+  const handleEdit = (id, value, title, tags) => {
+    if (editingId === id) {
+      setEditingId(null);
+      setEditingUrl('');
+      setEditingTitle('');
+      setEditingTags('');
+    } else {
+      setEditingId(id);
+      setEditingUrl(value);
+      setEditingTitle(title);
+      setEditingTags(Array.isArray(tags) ? tags.join(', ') : '');
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    const sanitizedUrl = sanitizeInput(editingUrl);
+    if (sanitizedUrl.trim()) {
+      try {
+        const docRef = doc(db, 'qrCodes', editingId);
+        await updateDoc(docRef, {
+          value: sanitizedUrl,
+          title: editingTitle || 'Untitled',
+          tags: editingTags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          updatedAt: new Date(),
+        });
+        setEditingId(null);
+        setEditingUrl('');
+        setEditingTitle('');
+        setEditingTags('');
+      } catch (error) {
+        console.error("Error updating document: ", error);
+        alert(error.message);
+      }
+    }
+  };
+
+  return {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    editingTitle,
+    editingTags,
+    setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  };
+};
+
+
+// File: src\main.jsx
+//main.jsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './style.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)
+
+
+// File: src\pages\login.jsx
+// Login.jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { useToast } from '../contexts/ToastProvider';
+import LoginForm from '../components/Login/LoginForm';
+
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const addToast = useToast();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      addToast('Logged in!', 'success');
+      navigate('/');
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  return (
+    <div className="login">
+      <h2>Login</h2>
+      <LoginForm
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        handleSubmit={handleSubmit}
+      />
+    </div>
+  );
+};
+
+export default Login;
+
+
+// File: src\pages\QRCodeGenerator.jsx
+//QRCodeGenerator.jsx
+import React from 'react';
+import QRCodeForm from '../components/QRCode/QRCodeForm';
+import QRCodeList from '../components/QRCode/QRCodeList';
+import { useAuth } from '../hooks/useAuth';
+import { useQRCode } from '../hooks/useQRCode';
+
+const QRCodeGenerator = () => {
+  const { user } = useAuth();
+  const {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    editingTitle,
+    editingTags,
+    setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  } = useQRCode(user);
+
+  return (
+    <div className="qr-container">
+      <div className="qr-generator">
+        <QRCodeForm handleSubmit={handleSubmit} showGenerateButton={true} isLoggedIn={!!user} />
+      </div>
+      <div className="qr-codes">
+        {user && (
+          <div>
+            {loading ? (
+              <p>Loading QR codes...</p>
+            ) : (
+              <QRCodeList
+                qrCodes={qrCodes}
+                editingId={editingId}
+                editingUrl={editingUrl}
+                editingTitle={editingTitle}
+                editingTags={editingTags}
+                setEditingUrl={setEditingUrl}
+                setEditingTitle={setEditingTitle}
+                setEditingTags={setEditingTags}
+                handleRemove={handleRemove}
+                handleEdit={handleEdit}
+                handleEditSubmit={handleEditSubmit}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default QRCodeGenerator;
+
+
+// File: src\pages\register.jsx
+//Register.jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { useToast } from '../contexts/ToastProvider';
+import RegisterForm from '../components/Register/RegisterForm';
+
+const Register = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const addToast = useToast();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      addToast('Registration successful!', 'success');
+      navigate('/');
+    } catch (error) {
+      addToast(error.message, 'error');
+    }
+  };
+
+  return (
+    <div className="register">
+      <h2>Register</h2>
+      <RegisterForm
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        handleSubmit={handleSubmit}
+      />
+    </div>
+  );
+};
+
+export default Register;
+
+
+
+// File: src\pages\settings.jsx
+//settings.jsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { auth } from '../services/firebase';
+import { useToast } from '../contexts/ToastProvider';
+import { useAuth } from '../hooks/useAuth';
+import EmailStatus from '../components/Settings/EmailStatus';
+import PasswordChange from '../components/Settings/PasswordChange';
+import AccountDeletion from '../components/Settings/AccountDeletion';
+
+const Settings = () => {
+  const { user, emailVerified, loading } = useAuth();
+  const navigate = useNavigate();
+  const addToast = useToast();
+  
+  const [newEmail, setNewEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setNewEmail(user.email);
+    }
+  }, [user]);
+
+  const handleCancelEdit = () => {
+    setNewEmail(user.email);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+  };
+
+  return (
+    <div className="settings">
+      <h2>Settings</h2>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <EmailStatus
+            user={user}
+            emailVerified={emailVerified}
+            newEmail={newEmail}
+            setNewEmail={setNewEmail}
+            currentPassword={currentPassword}
+            setCurrentPassword={setCurrentPassword}
+            handleCancelEdit={handleCancelEdit}
+          />
+          <PasswordChange
+            currentPassword={currentPassword}
+            setCurrentPassword={setCurrentPassword}
+            newPassword={newPassword}
+            setNewPassword={setNewPassword}
+            confirmNewPassword={confirmNewPassword}
+            setConfirmNewPassword={setConfirmNewPassword}
+            handleCancelEdit={handleCancelEdit}
+          />
+        </>
+      )}
+      <AccountDeletion user={user} navigate={navigate} addToast={addToast} />
+    </div>
+  );
+};
+
+export default Settings;
+
+
+// File: src\services\firebase.js
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+export { auth, db };
+
+
+
+
+
+
+// File: src\style.css
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+html, body {
+  height: 100%;
+  color: white;
+  font-size: 10px;
+  background-color: #000814;
+  font-family: Arial, sans-serif;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+blockquote, q {
+  quotes: none;
+}
+
+blockquote::before, blockquote::after, q::before, q::after {
+  content: "";
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+a, button {
+  font-size: 1.6rem;
+  cursor: pointer;
+  border-radius: 1rem;
+}
+a.green, button.green {
+  color: #000814 !important;
+  background-color: #0aff4b !important;
+}
+a.black, button.black {
+  color: white !important;
+  background-color: #000814 !important;
+}
+a.white, button.white {
+  color: #000814 !important;
+  background-color: white !important;
+}
+a.yellow, button.yellow {
+  color: #000814 !important;
+  background-color: #FFD60A !important;
+}
+
+h1 {
+  font-size: 4rem;
+}
+
+h2 {
+  font-size: 3rem;
+}
+
+h3 {
+  font-size: 2rem;
+}
+
+p {
+  font-size: 1.6rem;
+}
+
+input {
+  font-size: 1.6rem;
+}
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+}
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+body {
+  padding: 2rem;
+}
+@media (min-width: 576px) {
+  body {
+    padding: 8rem;
+  }
+}
+
+.App {
+  display: grid;
+  row-gap: 5rem;
+  grid-template-columns: 1fr;
+  grid-template-rows: 10rem 10rem auto;
+  grid-template-areas: "nav" "hero" "qr";
+  min-height: 100vh;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 4rem;
+  border-radius: 2rem;
+  background-color: white;
+}
+nav h1 a {
+  position: relative;
+  color: #000814;
+  margin: 0;
+  font-size: 4rem;
+  font-weight: 900;
+  top: -5px;
+}
+nav .nav-links {
+  display: flex;
+  gap: 1rem;
+  font-weight: 900;
+}
+nav .nav-links i {
+  display: none;
+}
+@media (min-width: 768px) {
+  nav .nav-links i {
+    display: inline-block;
+  }
+}
+nav .nav-links svg {
+  margin: 0 0.4rem 0 0.5rem;
+}
+nav a, nav button {
+  color: #000814;
+  margin-left: 1rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+}
+
+.hero {
+  grid-area: hero;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  height: 100%;
+}
+
+.qr {
+  grid-area: qr;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slideOut {
+  from {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+}
+.qr-container .qr-generator input {
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 1.5rem 0;
+  border-radius: 1rem;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator input {
+    width: 40rem;
+  }
+}
+.qr-container .qr-generator button {
+  font-weight: 900;
+  margin: 2rem 0;
+  padding: 2rem;
+  width: 100%;
+  color: #000814;
+  background-color: #FFD60A;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator button {
+    width: auto;
+  }
+}
+.qr-container .qr-generator .qr-code-notloggedin {
+  display: block;
+  margin: 10rem 0;
+  border-radius: 2rem;
+  background-color: white;
+}
+.qr-container .qr-generator .qr-code-notloggedin canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin: 2rem 0;
+  border-radius: 2rem;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator .qr-code-notloggedin canvas {
+    width: 40rem !important;
+  }
+}
+.qr-container .qr-generator .qr-code-notloggedin a {
+  display: inline-block;
+  width: auto;
+  margin: 1rem 0;
+  padding: 2rem 4rem;
+  color: #FFD60A;
+  background-color: #001D3D;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 4rem;
+  border-radius: 2rem;
+  background-color: #FFD60A;
+  line-height: 2.5rem;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #000814;
+  animation: slideIn 0.5s forwards;
+}
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user.slide-out {
+  animation: slideOut 0.5s forwards;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator .qr-code-notloggedin .message-to-user {
+    width: 60rem !important;
+  }
+}
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user p a {
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  background: unset;
+}
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user .close-button {
+  position: absolute;
+  top: -3rem;
+  right: -0.5rem;
+  background: none;
+  border: none;
+  font-size: 3rem;
+  cursor: pointer;
+  color: #000814;
+}
+.qr-container .qr-codes {
+  display: grid;
+  margin-bottom: 20rem;
+}
+.qr-container .qr-codes .qr-codes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code-wrapper {
+  display: block;
+  padding: 1rem;
+  border-radius: 2rem;
+  background-color: white;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code {
+  display: block;
+  padding: 1rem;
+  border-radius: 2rem;
+  background-color: inherit;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: inline;
+  float: left;
+  margin-bottom: 20px;
+  border-radius: 2rem;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code h3 {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code a, .qr-container .qr-codes .qr-codes-grid .qr-code input {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code input {
+  border-radius: 0.6666666667rem;
+  border: solid 1px #001D3D;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag-icon {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag {
+  display: inline-block;
+  padding: 0.8rem;
+  margin: 0.5rem;
+  border-radius: 1rem;
+  font-size: 1.6rem;
+  color: #000814;
+  background-color: #ffd60a;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag:first-child {
+  margin: 0.5rem 0;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code button {
+  display: inline;
+  width: 4rem;
+  margin: 2rem 1rem;
+  padding: 1rem;
+  float: right;
+  color: #000814;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code button.trash {
+  background-color: #ff0a0a;
+  color: white;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .edit-qr-code {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(255, 255, 255, 0.5);
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .edit-qr-code label {
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: #000814;
+  margin: 1rem 2rem;
+}
+.qr-container .qr-codes .inittxt {
+  width: 100%;
+}
+
+/* Toast.css */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.toast {
+  background-color: white;
+  color: #000814;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  padding: 1rem 2rem;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  opacity: 0.8;
+  font-size: 2rem;
+  min-width: 200px;
+  text-align: center;
+}
+
+.toast.success {
+  background-color: #0aff4b;
+}
+
+.toast.error {
+  background-color: #ff0a0a;
+}
+
+.login, .register {
+  padding: 10rem 0;
+}
+.login h2, .register h2 {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .login h2, .register h2 {
+    max-width: 40rem;
+  }
+}
+.login input, .register input {
+  font-size: 2rem;
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 2rem auto;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .login input, .register input {
+    max-width: 40rem;
+  }
+}
+.login button, .register button {
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 4rem auto;
+  font-weight: 900;
+  background-color: #FFD60A;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .login button, .register button {
+    max-width: 40rem;
+  }
+}
+
+.settings {
+  padding: 10rem 0;
+}
+.settings h2 {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .settings h2 {
+    max-width: 40rem;
+  }
+}
+.settings p {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .settings p {
+    max-width: 40rem;
+  }
+}
+.settings input {
+  font-size: 2rem;
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 2rem auto;
+  color: #001D3D;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .settings input {
+    max-width: 40rem;
+  }
+}
+.settings .confirm-delete p {
+  font-size: 2rem;
+  color: #ff0a0a;
+}
+.settings .email-verification p {
+  font-size: 1.5rem;
+  color: #ff0a0a;
+}
+.settings .email-verification .verify-email-button {
+  background-color: #001D3D;
+  color: white;
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  display: block;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .settings .email-verification .verify-email-button {
+    max-width: 40rem;
+  }
+}
+.settings button {
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 4rem auto;
+  font-weight: 900;
+  background-color: #FFD60A;
+  border-radius: 1rem;
+}
+@media (min-width: 768px) {
+  .settings button {
+    max-width: 40rem;
+  }
+}
+.settings button.confirm-button, .settings button.cancel-button {
+  margin: 3rem auto;
+}
+@media (min-width: 768px) {
+  .settings button.confirm-button, .settings button.cancel-button {
+    max-width: 40rem;
+  }
+}
+.settings button.confirm-button {
+  color: #000814;
+  background-color: #0aff4b;
+}
+.settings button.cancel-button {
+  margin: 2rem auto;
+  color: white;
+  background-color: #001D3D;
+}
+.settings button.change-email-button {
+  margin: 0.5rem auto;
+  color: #000814;
+  background-color: #0aff4b;
+}
+.settings button.delete-account-button {
+  color: white;
+  background-color: #ff0a0a;
+}
+.settings .change-email-form {
+  margin-bottom: 4rem;
+}
+.settings .password-change h3 {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .settings .password-change h3 {
+    max-width: 40rem;
+  }
+}
+.settings .delete-account h3 {
+  display: block;
+  padding: 5rem 0;
+  margin: 2rem auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .settings .delete-account h3 {
+    max-width: 40rem;
+  }
+}
+
+/*# sourceMappingURL=style.css.map */
+
+
+// File: src\utils\sanitizeInput.js
+//sanitizeInput.js
+import DOMPurify from 'dompurify';
+
+export const sanitizeInput = (input) => {
+  return DOMPurify.sanitize(input, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+};
+
+

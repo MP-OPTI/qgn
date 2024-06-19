@@ -1,6 +1,8 @@
-//QRCodeList.jsx
+// File: src/components/QRCode/QRCodeList.jsx
+
 import React from 'react';
 import QRCodeDisplay from './QRCodeDisplay';
+import { useTransition, animated } from '@react-spring/web';
 
 const QRCodeList = ({
   qrCodes,
@@ -15,10 +17,18 @@ const QRCodeList = ({
   handleEdit,
   handleEditSubmit
 }) => {
+  const transitions = useTransition(qrCodes, {
+    keys: qrCode => qrCode.id,
+    from: { opacity: 0, transform: 'scale(0.5)' },
+    enter: { opacity: 1, transform: 'scale(1)' },
+    leave: { opacity: 0, transform: 'scale(0.5)' },
+    trail: 100, // delay between each item
+  });
+
   return (
     <div className="qr-codes-grid">
-      {qrCodes.length > 0 ? (
-        qrCodes.map((qrCode) => (
+      {transitions((style, qrCode) => (
+        <animated.div style={style} className="qr-code-wrapper">
           <QRCodeDisplay
             key={qrCode.id}
             qrCode={qrCode}
@@ -33,13 +43,10 @@ const QRCodeList = ({
             setEditingTags={setEditingTags}
             handleEditSubmit={handleEditSubmit}
           />
-        ))
-      ) : (
-        <p className="inittxt">No QR codes yet... <br></br><br></br>Start by creating some above. You can make a QR Code with any text or URL.</p>
-      )}
+        </animated.div>
+      ))}
     </div>
   );
 };
 
 export default QRCodeList;
-

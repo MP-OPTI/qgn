@@ -123,10 +123,11 @@ body {
 
 .App {
   display: grid;
+  row-gap: 5rem;
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-  grid-template-areas: "nav" "qr-container";
-  height: 100vh;
+  grid-template-rows: 10rem 10rem auto;
+  grid-template-areas: "nav" "hero" "qr";
+  min-height: 100vh;
 }
 
 nav {
@@ -169,13 +170,41 @@ nav a, nav button {
   border: none;
 }
 
-.qr-container {
-  grid-area: qr-container;
+.hero {
+  grid-area: hero;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  height: 100%;
 }
-.qr-container .qr-generator {
-  margin: 100px 0 150px 0;
+
+.qr {
+  grid-area: qr;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slideOut {
+  from {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
 }
 .qr-container .qr-generator input {
+  display: block;
   width: 100%;
   padding: 2rem;
   margin: 1.5rem 0;
@@ -184,7 +213,6 @@ nav a, nav button {
 @media (min-width: 992px) {
   .qr-container .qr-generator input {
     width: 40rem;
-    margin: 1.5rem;
   }
 }
 .qr-container .qr-generator button {
@@ -198,13 +226,13 @@ nav a, nav button {
 @media (min-width: 992px) {
   .qr-container .qr-generator button {
     width: auto;
-    margin: 0 10px;
   }
 }
 .qr-container .qr-generator .qr-code-notloggedin {
   display: block;
   margin: 10rem 0;
   border-radius: 2rem;
+  background-color: white;
 }
 .qr-container .qr-generator .qr-code-notloggedin canvas {
   width: 100% !important;
@@ -228,6 +256,48 @@ nav a, nav button {
   text-decoration: underline;
   word-break: break-all;
 }
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 4rem;
+  border-radius: 2rem;
+  background-color: #FFD60A;
+  line-height: 2.5rem;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #000814;
+  animation: slideIn 0.5s forwards;
+}
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user.slide-out {
+  animation: slideOut 0.5s forwards;
+}
+@media (min-width: 992px) {
+  .qr-container .qr-generator .qr-code-notloggedin .message-to-user {
+    width: 60rem !important;
+  }
+}
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user p a {
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  background: unset;
+}
+.qr-container .qr-generator .qr-code-notloggedin .message-to-user .close-button {
+  position: absolute;
+  top: -3rem;
+  right: -0.5rem;
+  background: none;
+  border: none;
+  font-size: 3rem;
+  cursor: pointer;
+  color: #000814;
+}
 .qr-container .qr-codes {
   display: grid;
   margin-bottom: 20rem;
@@ -238,11 +308,17 @@ nav a, nav button {
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
-.qr-container .qr-codes .qr-codes-grid .qr-code {
+.qr-container .qr-codes .qr-codes-grid .qr-code-wrapper {
   display: block;
   padding: 1rem;
   border-radius: 2rem;
   background-color: white;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code {
+  display: block;
+  padding: 1rem;
+  border-radius: 2rem;
+  background-color: inherit;
 }
 .qr-container .qr-codes .qr-codes-grid .qr-code canvas {
   width: 100% !important;
