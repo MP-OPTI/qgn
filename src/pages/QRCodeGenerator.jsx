@@ -1,3 +1,4 @@
+//QRCodeGenerator.jsx
 import React from 'react';
 import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
@@ -11,7 +12,11 @@ const QRCodeGenerator = () => {
     loading,
     editingId,
     editingUrl,
+    editingTitle,
+    editingTags,
     setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
     handleSubmit,
     handleRemove,
     handleEdit,
@@ -33,7 +38,11 @@ const QRCodeGenerator = () => {
                 qrCodes={qrCodes}
                 editingId={editingId}
                 editingUrl={editingUrl}
+                editingTitle={editingTitle}
+                editingTags={editingTags}
                 setEditingUrl={setEditingUrl}
+                setEditingTitle={setEditingTitle}
+                setEditingTags={setEditingTags}
                 handleRemove={handleRemove}
                 handleEdit={handleEdit}
                 handleEditSubmit={handleEditSubmit}

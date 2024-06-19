@@ -6,7 +6,11 @@ const QRCodeList = ({
   qrCodes,
   editingId,
   editingUrl,
+  editingTitle,
+  editingTags,
   setEditingUrl,
+  setEditingTitle,
+  setEditingTags,
   handleRemove,
   handleEdit,
   handleEditSubmit
@@ -22,7 +26,11 @@ const QRCodeList = ({
             handleEdit={handleEdit}
             editingId={editingId}
             editingUrl={editingUrl}
+            editingTitle={editingTitle}
+            editingTags={editingTags}
             setEditingUrl={setEditingUrl}
+            setEditingTitle={setEditingTitle}
+            setEditingTags={setEditingTags}
             handleEditSubmit={handleEditSubmit}
           />
         ))
@@ -34,3 +42,4 @@ const QRCodeList = ({
 };
 
 export default QRCodeList;
+

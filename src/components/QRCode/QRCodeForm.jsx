@@ -6,14 +6,18 @@ import { sanitizeInput } from '../../utils/sanitizeInput';
 
 const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
   const [url, setUrl] = useState('');
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState('');
   const [submittedUrl, setSubmittedUrl] = useState('');
 
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedUrl = sanitizeInput(url);
     setSubmittedUrl(sanitizedUrl); // Store the sanitized URL to display the QR code
-    handleSubmit(sanitizedUrl);
+    handleSubmit(sanitizedUrl, title, tags);
     setUrl('');
+    setTitle('');
+    setTags('');
   };
 
   return (
@@ -21,9 +25,21 @@ const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
       <form onSubmit={onSubmit}>
         <input
           type="text"
+          placeholder="Enter title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <input
+          type="text"
           placeholder="Enter URL or text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Tag1, Tag2, etc."
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
         />
         {showGenerateButton && <button type="submit">Generate QR Code</button>}
       </form>

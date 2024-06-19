@@ -49,6 +49,22 @@ a, button {
   cursor: pointer;
   border-radius: 1rem;
 }
+a.green, button.green {
+  color: #000814 !important;
+  background-color: #0aff4b !important;
+}
+a.black, button.black {
+  color: white !important;
+  background-color: #000814 !important;
+}
+a.white, button.white {
+  color: #000814 !important;
+  background-color: white !important;
+}
+a.yellow, button.yellow {
+  color: #000814 !important;
+  background-color: #FFD60A !important;
+}
 
 h1 {
   font-size: 4rem;
@@ -234,6 +250,14 @@ nav a, nav button {
   margin-bottom: 20px;
   border-radius: 2rem;
 }
+.qr-container .qr-codes .qr-codes-grid .qr-code h3 {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+}
 .qr-container .qr-codes .qr-codes-grid .qr-code a, .qr-container .qr-codes .qr-codes-grid .qr-code input {
   display: inline;
   float: left;
@@ -248,6 +272,29 @@ nav a, nav button {
   border-radius: 0.6666666667rem;
   border: solid 1px #001D3D;
 }
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag-icon {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag {
+  display: inline-block;
+  padding: 1rem;
+  border-radius: 1rem;
+  font-size: 1.6rem;
+  color: #000814;
+  background-color: #ffd60a;
+}
 .qr-container .qr-codes .qr-codes-grid .qr-code button {
   display: inline;
   width: 4rem;
@@ -259,6 +306,26 @@ nav a, nav button {
 .qr-container .qr-codes .qr-codes-grid .qr-code button.trash {
   background-color: #ff0a0a;
   color: white;
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .edit-qr-code {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(255, 255, 255, 0.5);
+}
+.qr-container .qr-codes .qr-codes-grid .qr-code .edit-qr-code label {
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: #000814;
+  margin: 1rem 2rem;
 }
 .qr-container .qr-codes .inittxt {
   width: 100%;
