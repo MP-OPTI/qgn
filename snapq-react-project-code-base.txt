@@ -1,22 +1,25 @@
 // File: src\App.jsx
-//App.jsx
+// File: src/App.jsx
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
-import QRCodeGenerator from './pages/QRCodeGenerator';
-import Register from './pages/register';
-import Login from './pages/login';
-import Settings from './pages/settings';
+import QRCodeGenerator from './pages/HomePage';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import Settings from './pages/Settings';
+import LoggedInHome from './pages/LoggedInHome';
 import { ToastProvider, useToast } from './contexts/ToastProvider';
 import { auth } from './services/firebase';
 import './fontawesome';
+import Footer from './components/Footer';
 
-const MainApp = ({ isLoggedIn }) => {
+const MainApp = () => {
   const [user, setUser] = useState(null);
   const addToast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -39,31 +42,36 @@ const MainApp = ({ isLoggedIn }) => {
 
   return (
     <div className="App">
-      <nav>
-        <h1><Link to="/">snapq</Link></h1>
-        <div className="nav-links">
-          {!user && <Link to="/register"><i>Register</i> <FontAwesomeIcon icon="user-plus" /></Link>}
-          {!user && <Link to="/login"><i>Login</i> <FontAwesomeIcon icon="right-to-bracket" /></Link>}
-          {user && <Link to="/settings"><FontAwesomeIcon icon="user" /></Link>}
-          {user && <button onClick={handleLogout}><FontAwesomeIcon icon="right-from-bracket" /></button>}
-        </div>
-      </nav>
+      <header>
+        <nav>
+          <i><Link to="/">qgn</Link></i>
+          <div className="nav-links">
+            {!user && <Link to="/register"><i>Register</i> <FontAwesomeIcon icon="user-plus" /></Link>}
+            {!user && <Link to="/login"><i>Login</i> <FontAwesomeIcon icon="right-to-bracket" /></Link>}
+            {user && <Link to="/settings"><FontAwesomeIcon icon="user" /></Link>}
+            {user && <button onClick={handleLogout}><FontAwesomeIcon icon="right-from-bracket" /></button>}
+          </div>
+        </nav>
+      </header>
 
-      {!isLoggedIn && (
+      {location.pathname === '/' && !user && (
         <div className="hero">
-          <h1>Stop typing, start scanning</h1>
-          <h2>Paste your link below and get your QR instantly!</h2>
+          <h1>QR Codes, nothing else</h1>
+          <h2>#1 Copy url #2 Get QR Code</h2>
         </div>
       )}
-
+    
       <div className="qr">
         <Routes>
-          <Route path="/" element={<QRCodeGenerator />} />
+          <Route path="/" element={user ? <Navigate to="/home" /> : <QRCodeGenerator />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/home" element={user ? <LoggedInHome /> : <Navigate to="/login" />} />
         </Routes>
       </div>
+      
+      <Footer />
     </div>
   );
 };
@@ -77,6 +85,27 @@ const App = () => (
 );
 
 export default App;
+
+
+// File: src\components\Footer.jsx
+// src/components/Footer.jsx
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const Footer = () => {
+  return (
+    <footer>
+      <nav className="footer-nav">
+        <Link to="/register">Register</Link>
+        <Link to="/login">Login</Link>
+        <Link to="/blog">Blog</Link>
+      </nav>
+      <p>&copy; {new Date().getFullYear()} Morten Pradsgaard. All rights reserved.</p>
+    </footer>
+  );
+};
+
+export default Footer;
 
 
 // File: src\components\Login\LoginForm.jsx
@@ -112,7 +141,7 @@ export default LoginForm;
 import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import qLogo from '../../assets/q-logo.png';
+import qLogo from '../../assets/q-logo.webp';
 import useDownloadQRCode from '../../hooks/useDownloadQRCode';
 import { useSpring, animated } from '@react-spring/web';
 
@@ -143,7 +172,6 @@ const QRCodeDisplay = ({
 
   return (
     <div className="qr-code" key={qrCode.id} ref={qrRef}>
-      <animated.div style={springProps}>
         <QRCode
           value={qrCode.value}
           size={300}
@@ -195,7 +223,7 @@ const QRCodeDisplay = ({
               placeholder="Tags (comma separated)"
               style={{ marginBottom: '10px' }}
             />
-            <div>
+            <div className="approve-edit">
               <button className="green" type="submit" style={{ marginRight: '5px' }}><FontAwesomeIcon icon="check" /></button>
               <button className="black" onClick={() => handleEdit(null, '', '', '')}><FontAwesomeIcon icon="xmark" /></button>
             </div>
@@ -211,7 +239,6 @@ const QRCodeDisplay = ({
             <FontAwesomeIcon icon="download" />
           </button>
         </div>
-      </animated.div>
     </div>
   );
 };
@@ -220,105 +247,54 @@ export default QRCodeDisplay;
 
 
 // File: src\components\QRCode\QRCodeForm.jsx
-//QRCodeForm.jsx
-import React, { useState, useEffect } from 'react';
-import { QRCode } from 'react-qrcode-logo';
-import qLogo from '../../assets/q-logo.png';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// File: src/components/QRCode/QRCodeForm.jsx
+import React, { useState } from 'react';
 import { sanitizeInput } from '../../utils/sanitizeInput';
 
 const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
-  const [submittedUrl, setSubmittedUrl] = useState('');
-  const [showMessage, setShowMessage] = useState(false);
-  const [animateOut, setAnimateOut] = useState(false);
-
-  useEffect(() => {
-    if (!localStorage.getItem('hideMessage')) {
-      setTimeout(() => {
-        setShowMessage(true); // Show the message with a delay
-      }, 3000); // 3-second delay before showing the message
-    }
-  }, []);
 
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedUrl = sanitizeInput(url);
-    setSubmittedUrl(sanitizedUrl); // Store the sanitized URL to display the QR code
-    handleSubmit(sanitizedUrl, title, tags);
+    console.log('Form is submitting with URL:', sanitizedUrl);
+    handleSubmit(sanitizedUrl, title, tags); // Make sure to pass tags
     setUrl('');
     setTitle('');
     setTags('');
   };
 
-  const handleCloseMessage = () => {
-    setAnimateOut(true);
-    setTimeout(() => {
-      setShowMessage(false);
-      setAnimateOut(false);
-      localStorage.setItem('hideMessage', 'true'); // Set item in localStorage
-    }, 500); // Duration of the slideOut animation
-  };
-
   return (
-    <>
-      <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          placeholder="Enter URL for the QR Code"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
-        
-        {isLoggedIn && (
+    <form onSubmit={onSubmit}>
+
+      {!isLoggedIn && <h3>Insert your URL into the field below</h3>}
+      
+      <input
+        type="text"
+        placeholder="Enter URL for the QR Code"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+      />
+      {isLoggedIn && (
+        <>
           <input
             type="text"
             placeholder="Enter title/name"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-        )}
-        
-        {isLoggedIn && (
           <input
             type="text"
             placeholder="Tag1, Tag2, etc."
             value={tags}
             onChange={(e) => setTags(e.target.value)}
           />
-        )}
-      
-        {showGenerateButton && <button type="submit">Generate QR Code</button>}
-      </form>
-      
-      {!isLoggedIn && submittedUrl && (
-        <div className="qr-code-notloggedin">
-          <QRCode
-            value={submittedUrl}
-            size={256}
-            bgColor="#ffffff"
-            fgColor="#000000"
-            qrStyle="dots"
-            eyeRadius={[
-              { outer: 10, inner: 0 },
-              { outer: 10, inner: 0 },
-              { outer: 10, inner: 0 }
-            ]}
-            logoImage={qLogo}
-            logoWidth={50}
-          />
-          <a href={submittedUrl} target="_blank">{submittedUrl}</a>
-          {showMessage && (
-            <div className={`message-to-user ${animateOut ? 'slide-out' : 'slide-in'}`}>
-              <button className="close-button" onClick={handleCloseMessage}><FontAwesomeIcon icon="xmark" /></button>
-              <p>Want to save your QR Code? <a href="/register">Register</a> as a user, to save and download all your QR Codes!</p>
-            </div>
-          )}
-        </div>
+        </>
       )}
-    </>
+      {showGenerateButton && <button type="submit">Generate QR Code</button>}
+    </form>
   );
 };
 
@@ -378,6 +354,42 @@ const QRCodeList = ({
 };
 
 export default QRCodeList;
+
+
+// File: src\components\QRCode\QRCodeNonUserDisplay.jsx
+// File: src/components/QRCode/QRCodeNonUserDisplay.jsx
+import React from 'react';
+import { QRCode } from 'react-qrcode-logo';
+import qLogo from '../../assets/q-logo.png';
+
+const QRCodeNonUserDisplay = ({ submittedUrl }) => {
+
+  return (
+    <div style={{ textAlign: 'center' }}>
+        <>
+          <QRCode
+            value={submittedUrl}
+            size={256}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            qrStyle="dots"
+            eyeRadius={[
+              { outer: 10, inner: 0 },
+              { outer: 10, inner: 0 },
+              { outer: 10, inner: 0 },
+            ]}
+            logoImage={qLogo}
+            logoWidth={50}
+          />
+          <a href={submittedUrl} target="_blank" rel="noopener noreferrer">
+            {submittedUrl}
+          </a>
+        </>
+    </div>
+  );
+};
+
+export default QRCodeNonUserDisplay;
 
 
 // File: src\components\Register\RegisterForm.jsx
@@ -789,7 +801,7 @@ export const useQRCode = (user) => {
     return () => unsubscribe();
   }, [user]);
 
-  const handleSubmit = async (url, title, tags) => {
+  const handleSubmit = async (url, title, tags = '') => {
     const sanitizedUrl = sanitizeInput(url);
     if (sanitizedUrl.trim() && user) {
       try {
@@ -797,7 +809,7 @@ export const useQRCode = (user) => {
           uid: user.uid,
           value: sanitizedUrl,
           title: title || 'Untitled',
-          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag), // Ensure tags is always a string
           createdAt: new Date(),
         });
       } catch (error) {
@@ -885,7 +897,136 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 
 
-// File: src\pages\login.jsx
+// File: src\pages\HomePage.jsx
+// File: src/pages/HomePage.jsx
+import React, { useState, useEffect } from 'react';
+import QRCodeForm from '../components/QRCode/QRCodeForm';
+import QRCodeNonUserDisplay from '../components/QRCode/QRCodeNonUserDisplay';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import placeholderImage from '../assets/q-logo.png';
+
+const HomePage = () => {
+  const [submittedUrl, setSubmittedUrl] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
+  const [animateOut, setAnimateOut] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('hideMessage')) {
+      setTimeout(() => {
+        setShowMessage(true);
+      }, 3000);
+    }
+  }, []);
+
+  const handleCloseMessage = () => {
+    setAnimateOut(true);
+    setTimeout(() => {
+      setShowMessage(false);
+      setAnimateOut(false);
+      localStorage.setItem('hideMessage', 'true');
+    }, 500);
+  };
+
+  const handleFormSubmit = (url) => {
+    console.log('Form submitted with URL:', url);
+    setSubmittedUrl(url);
+  };
+
+  return (
+    <div className="qr-nonuser">
+      <div className="qr-generator">
+        <QRCodeForm handleSubmit={handleFormSubmit} showGenerateButton={true} isLoggedIn={false} />
+      </div>
+      <div className="qr-codes">
+        {submittedUrl ? (
+          <QRCodeNonUserDisplay submittedUrl={submittedUrl} />
+        ) : (
+          <div className="qr-placeholder"><FontAwesomeIcon icon="qrcode" /></div>
+        )}
+      </div>
+      {showMessage && (
+        <div className={`message-to-user ${animateOut ? 'slide-out' : 'slide-in'}`}>
+          <button className="close-button" onClick={handleCloseMessage}>
+            <FontAwesomeIcon icon="xmark" />
+          </button>
+          <p>Want to save your QR Code? <a href="/register">Register</a> as a user, to save and download all your QR Codes!</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default HomePage;
+
+
+// File: src\pages\LoggedInHome.jsx
+// src/pages/LoggedInHome.jsx
+import React from 'react';
+import QRCodeForm from '../components/QRCode/QRCodeForm';
+import QRCodeList from '../components/QRCode/QRCodeList';
+import { useAuth } from '../hooks/useAuth';
+import { useQRCode } from '../hooks/useQRCode';
+
+const LoggedInHome = () => {
+  const { user } = useAuth();
+  const {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    editingTitle,
+    editingTags,
+    setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  } = useQRCode(user);
+
+  return (
+    <div className="qr-user">
+      <div className="qr-generator">
+        <QRCodeForm handleSubmit={handleSubmit} showGenerateButton={true} isLoggedIn={!!user} />
+      </div>
+      <div className="qr-userhero">
+        <h2>#1 Copy url</h2>
+        <h2>#2 Get QR Code</h2>
+        <h2>#3 Store them for later</h2>
+        <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
+      </div>
+      <div className="qr-codes">
+        {user && (
+          <div>
+            {loading ? (
+              <p>Loading QR codes...</p>
+            ) : (
+              <QRCodeList
+                qrCodes={qrCodes}
+                editingId={editingId}
+                editingUrl={editingUrl}
+                editingTitle={editingTitle}
+                editingTags={editingTags}
+                setEditingUrl={setEditingUrl}
+                setEditingTitle={setEditingTitle}
+                setEditingTags={setEditingTags}
+                handleRemove={handleRemove}
+                handleEdit={handleEdit}
+                handleEditSubmit={handleEditSubmit}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default LoggedInHome;
+
+
+// File: src\pages\Login.jsx
 // Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -928,68 +1069,7 @@ const Login = () => {
 export default Login;
 
 
-// File: src\pages\QRCodeGenerator.jsx
-//QRCodeGenerator.jsx
-import React from 'react';
-import QRCodeForm from '../components/QRCode/QRCodeForm';
-import QRCodeList from '../components/QRCode/QRCodeList';
-import { useAuth } from '../hooks/useAuth';
-import { useQRCode } from '../hooks/useQRCode';
-
-const QRCodeGenerator = () => {
-  const { user } = useAuth();
-  const {
-    qrCodes,
-    loading,
-    editingId,
-    editingUrl,
-    editingTitle,
-    editingTags,
-    setEditingUrl,
-    setEditingTitle,
-    setEditingTags,
-    handleSubmit,
-    handleRemove,
-    handleEdit,
-    handleEditSubmit
-  } = useQRCode(user);
-
-  return (
-    <div className="qr-container">
-      <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleSubmit} showGenerateButton={true} isLoggedIn={!!user} />
-      </div>
-      <div className="qr-codes">
-        {user && (
-          <div>
-            {loading ? (
-              <p>Loading QR codes...</p>
-            ) : (
-              <QRCodeList
-                qrCodes={qrCodes}
-                editingId={editingId}
-                editingUrl={editingUrl}
-                editingTitle={editingTitle}
-                editingTags={editingTags}
-                setEditingUrl={setEditingUrl}
-                setEditingTitle={setEditingTitle}
-                setEditingTags={setEditingTags}
-                handleRemove={handleRemove}
-                handleEdit={handleEdit}
-                handleEditSubmit={handleEditSubmit}
-              />
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default QRCodeGenerator;
-
-
-// File: src\pages\register.jsx
+// File: src\pages\Register.jsx
 //Register.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -1033,8 +1113,8 @@ export default Register;
 
 
 
-// File: src\pages\settings.jsx
-//settings.jsx
+// File: src\pages\Settings.jsx
+// src/pages/Settings.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../services/firebase';
@@ -1045,7 +1125,7 @@ import PasswordChange from '../components/Settings/PasswordChange';
 import AccountDeletion from '../components/Settings/AccountDeletion';
 
 const Settings = () => {
-  const { user, emailVerified, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const addToast = useToast();
   
@@ -1076,7 +1156,7 @@ const Settings = () => {
         <>
           <EmailStatus
             user={user}
-            emailVerified={emailVerified}
+            emailVerified={user?.emailVerified}
             newEmail={newEmail}
             setNewEmail={setNewEmail}
             currentPassword={currentPassword}
@@ -1177,7 +1257,6 @@ table {
 a, button {
   font-size: 1.6rem;
   cursor: pointer;
-  border-radius: 1rem;
 }
 a.green, button.green {
   color: #000814 !important;
@@ -1242,77 +1321,6 @@ input {
   }
 }
 
-body {
-  padding: 2rem;
-}
-@media (min-width: 576px) {
-  body {
-    padding: 8rem;
-  }
-}
-
-.App {
-  display: grid;
-  row-gap: 5rem;
-  grid-template-columns: 1fr;
-  grid-template-rows: 10rem 10rem auto;
-  grid-template-areas: "nav" "hero" "qr";
-  min-height: 100vh;
-}
-
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2rem 4rem;
-  border-radius: 2rem;
-  background-color: white;
-}
-nav h1 a {
-  position: relative;
-  color: #000814;
-  margin: 0;
-  font-size: 4rem;
-  font-weight: 900;
-  top: -5px;
-}
-nav .nav-links {
-  display: flex;
-  gap: 1rem;
-  font-weight: 900;
-}
-nav .nav-links i {
-  display: none;
-}
-@media (min-width: 768px) {
-  nav .nav-links i {
-    display: inline-block;
-  }
-}
-nav .nav-links svg {
-  margin: 0 0.4rem 0 0.5rem;
-}
-nav a, nav button {
-  color: #000814;
-  margin-left: 1rem;
-  text-decoration: none;
-  background: none;
-  border: none;
-}
-
-.hero {
-  grid-area: hero;
-  display: flex;
-  flex-direction: column;
-  align-items: left;
-  justify-content: center;
-  height: 100%;
-}
-
-.qr {
-  grid-area: qr;
-}
-
 @keyframes slideIn {
   from {
     transform: translateX(-50%) translateY(100%);
@@ -1333,7 +1341,7 @@ nav a, nav button {
     opacity: 0;
   }
 }
-.qr-container .qr-generator input {
+input {
   display: block;
   width: 100%;
   padding: 2rem;
@@ -1341,206 +1349,133 @@ nav a, nav button {
   border-radius: 1rem;
 }
 @media (min-width: 992px) {
-  .qr-container .qr-generator input {
+  input {
     width: 40rem;
   }
 }
-.qr-container .qr-generator button {
+
+button {
   font-weight: 900;
   margin: 2rem 0;
   padding: 2rem;
   width: 100%;
   color: #000814;
   background-color: #FFD60A;
+  border-radius: 1rem;
 }
 @media (min-width: 992px) {
-  .qr-container .qr-generator button {
+  button {
     width: auto;
   }
 }
-.qr-container .qr-generator .qr-code-notloggedin {
-  display: block;
-  margin: 10rem 0;
-  border-radius: 2rem;
-  background-color: white;
-}
-.qr-container .qr-generator .qr-code-notloggedin canvas {
-  width: 100% !important;
-  height: auto !important;
-  display: block;
-  margin: 2rem 0;
-  border-radius: 2rem;
-}
-@media (min-width: 992px) {
-  .qr-container .qr-generator .qr-code-notloggedin canvas {
-    width: 40rem !important;
-  }
-}
-.qr-container .qr-generator .qr-code-notloggedin a {
-  display: inline-block;
-  width: auto;
-  margin: 1rem 0;
-  padding: 2rem 4rem;
-  color: #FFD60A;
-  background-color: #001D3D;
-  text-decoration: underline;
-  word-break: break-all;
-}
-.qr-container .qr-generator .qr-code-notloggedin .message-to-user {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
+
+header nav {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
   padding: 2rem 4rem;
   border-radius: 2rem;
-  background-color: #FFD60A;
-  line-height: 2.5rem;
-  font-size: 2rem;
-  font-weight: 900;
+  backdrop-filter: blur(1rem);
+  background: rgba(255, 255, 255, 0.9);
+}
+header nav i a {
+  position: relative;
   color: #000814;
-  animation: slideIn 0.5s forwards;
+  margin: 0;
+  font-size: 4rem;
+  font-weight: 900;
+  top: -5px;
 }
-.qr-container .qr-generator .qr-code-notloggedin .message-to-user.slide-out {
-  animation: slideOut 0.5s forwards;
+header nav .nav-links {
+  font-weight: 900;
+  display: flex;
+  justify-content: space-between;
 }
-@media (min-width: 992px) {
-  .qr-container .qr-generator .qr-code-notloggedin .message-to-user {
-    width: 60rem !important;
+header nav .nav-links i {
+  display: none;
+}
+@media (min-width: 768px) {
+  header nav .nav-links i {
+    display: inline-block;
   }
 }
-.qr-container .qr-generator .qr-code-notloggedin .message-to-user p a {
-  color: inherit;
-  padding: 0;
-  margin: 0;
-  background: unset;
+header nav .nav-links svg {
+  margin: 0 0.4rem 0 0.5rem;
 }
-.qr-container .qr-generator .qr-code-notloggedin .message-to-user .close-button {
-  position: absolute;
-  top: -3rem;
-  right: -0.5rem;
+header nav a, header nav button {
+  color: #000814;
+  margin: 0 1rem 0 0;
+  padding: 0;
+  text-decoration: none;
   background: none;
   border: none;
-  font-size: 3rem;
-  cursor: pointer;
-  color: #000814;
 }
-.qr-container .qr-codes {
-  display: grid;
-  margin-bottom: 20rem;
-}
-.qr-container .qr-codes .qr-codes-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code-wrapper {
-  display: block;
-  padding: 1rem;
-  border-radius: 2rem;
-  background-color: white;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code {
-  display: block;
-  padding: 1rem;
-  border-radius: 2rem;
-  background-color: inherit;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code canvas {
-  width: 100% !important;
-  height: auto !important;
-  display: inline;
-  float: left;
-  margin-bottom: 20px;
-  border-radius: 2rem;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code h3 {
-  display: inline;
-  float: left;
-  width: 90%;
-  margin: 0 1rem;
-  padding: 1rem;
-  color: #001D3D;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code a, .qr-container .qr-codes .qr-codes-grid .qr-code input {
-  display: inline;
-  float: left;
-  width: 90%;
-  margin: 0 1rem;
-  padding: 1rem;
-  color: #001D3D;
-  text-decoration: underline;
-  word-break: break-all;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code input {
-  border-radius: 0.6666666667rem;
-  border: solid 1px #001D3D;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container {
-  display: inline;
-  float: left;
-  width: 90%;
-  margin: 0 1rem;
-  padding: 1rem;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag-icon {
-  display: inline;
-  float: left;
-  width: 90%;
-  margin: 0 1rem;
-  padding: 1rem;
-  color: #001D3D;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag {
-  display: inline-block;
-  padding: 0.8rem;
-  margin: 0.5rem;
-  border-radius: 1rem;
-  font-size: 1.6rem;
-  color: #000814;
-  background-color: #ffd60a;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code .tags-container .tag:first-child {
-  margin: 0.5rem 0;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code button {
-  display: inline;
-  width: 4rem;
-  margin: 2rem 1rem;
-  padding: 1rem;
-  float: right;
-  color: #000814;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code button.trash {
-  background-color: #ff0a0a;
-  color: white;
-}
-.qr-container .qr-codes .qr-codes-grid .qr-code .edit-qr-code {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+
+.hero {
   display: flex;
   flex-direction: column;
+  align-items: left;
   justify-content: center;
-  align-items: flex-start;
-  border-radius: 2rem;
-  backdrop-filter: blur(1rem);
-  background: rgba(255, 255, 255, 0.5);
+  height: 100%;
 }
-.qr-container .qr-codes .qr-codes-grid .qr-code .edit-qr-code label {
-  font-weight: 900;
-  font-size: 1.6rem;
-  color: #000814;
-  margin: 1rem 2rem;
+.hero h1 {
+  margin: 1rem 0;
 }
-.qr-container .qr-codes .inittxt {
-  width: 100%;
+.hero h2 {
+  margin: 1rem 0;
+}
+
+/* src/style.css */
+footer {
+  color: white;
+  text-align: center;
+}
+footer nav {
+  margin: 2rem 0;
+}
+footer nav a {
+  margin: 1rem;
+  color: white;
+}
+footer p {
+  margin: 4rem 0;
+}
+
+.App {
+  display: grid;
+  row-gap: 4rem;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  grid-template-areas: "header" "hero" "qr" "footer";
+  min-height: 100vh;
+  background: linear-gradient(to top, rgba(0, 8, 20, 0.99), rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.7)), url(../../assets/bg1.webp) no-repeat top center;
+  background-size: cover;
+  padding: 2rem;
+}
+@media (min-width: 576px) {
+  .App {
+    padding: 8rem;
+  }
+}
+
+header {
+  grid-area: header;
+  padding: 2rem 0;
+}
+
+.hero {
+  grid-area: hero;
+  padding: 2rem 0;
+}
+
+.qr {
+  grid-area: qr;
+  padding: 2rem 0;
+}
+
+footer {
+  grid-area: footer;
+  padding: 20rem 0;
 }
 
 /* Toast.css */
@@ -1577,7 +1512,7 @@ nav a, nav button {
 }
 
 .login, .register {
-  padding: 10rem 0;
+  padding: 5rem 0;
 }
 .login h2, .register h2 {
   display: block;
@@ -1742,6 +1677,298 @@ nav a, nav button {
   .settings .delete-account h3 {
     max-width: 40rem;
   }
+}
+
+.qr-nonuser {
+  display: grid;
+  row-gap: 5rem;
+  column-gap: 5rem;
+  grid-template-columns: 100%;
+  grid-template-rows: auto;
+  grid-template-areas: "qr-generator" "qr-codes";
+}
+@media (min-width: 992px) {
+  .qr-nonuser {
+    grid-template-columns: 50%;
+    grid-template-areas: "qr-generator qr-codes";
+  }
+}
+.qr-nonuser .qr-generator {
+  grid-area: qr-generator;
+  min-height: 45rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(0, 8, 20, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+@media (min-width: 992px) {
+  .qr-nonuser .qr-generator {
+    min-height: 65rem;
+  }
+}
+.qr-nonuser .qr-generator form {
+  width: 80%;
+  padding: 2rem 0;
+}
+.qr-nonuser .qr-generator form h3 {
+  font-size: 3rem;
+  margin: 0 0 5rem 0;
+}
+.qr-nonuser .qr-generator form input {
+  width: 100%;
+}
+.qr-nonuser .qr-generator form button {
+  width: 100%;
+}
+.qr-nonuser .qr-codes {
+  grid-area: qr-codes;
+  min-height: 45rem;
+  padding: 0rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(0, 8, 20, 0.5);
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+@media (min-width: 992px) {
+  .qr-nonuser .qr-codes {
+    min-height: 65rem;
+    padding: 4rem;
+  }
+}
+.qr-nonuser .qr-codes canvas {
+  width: 80% !important;
+  height: auto !important;
+  display: block;
+  margin: 2rem auto;
+  border-radius: 2rem;
+}
+.qr-nonuser .qr-codes a {
+  display: inline-block;
+  width: auto;
+  margin: 1rem 0;
+  padding: 2rem 4rem;
+  color: #FFD60A;
+  border-radius: 2rem;
+  background-color: #001D3D;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.qr-nonuser .qr-codes .qr-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+.qr-nonuser .qr-codes .qr-placeholder svg {
+  width: 50%;
+  height: 50%;
+  color: white;
+}
+.qr-nonuser .message-to-user {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 4rem;
+  border-radius: 2rem;
+  background-color: #FFD60A;
+  line-height: 2.5rem;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #000814;
+  animation: slideIn 0.5s forwards;
+}
+.qr-nonuser .message-to-user.slide-out {
+  animation: slideOut 0.5s forwards;
+}
+@media (min-width: 992px) {
+  .qr-nonuser .message-to-user {
+    width: 60rem !important;
+  }
+}
+.qr-nonuser .message-to-user p a {
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  background: unset;
+}
+.qr-nonuser .message-to-user .close-button {
+  position: absolute;
+  top: -3rem;
+  right: -0.5rem;
+  background: none;
+  border: none;
+  font-size: 3rem;
+  cursor: pointer;
+  color: #000814;
+}
+
+.qr-user {
+  display: grid;
+  row-gap: 5rem;
+  grid-template-columns: auto;
+  grid-template-rows: auto auto;
+  grid-template-areas: "qr-userhero" "qr-generator" "qr-codes";
+}
+@media (min-width: 768px) {
+  .qr-user {
+    grid-template-columns: 50% 50%;
+    grid-template-areas: "qr-generator qr-userhero" "qr-codes qr-codes";
+  }
+}
+.qr-user .qr-generator {
+  grid-area: qr-generator;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.qr-user .qr-userhero {
+  grid-area: qr-userhero;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  padding: 0 4rem;
+  top: -4rem;
+}
+.qr-user .qr-userhero h2 {
+  margin: 0.5rem 0;
+}
+.qr-user .qr-userhero h4 {
+  margin: 1rem 0;
+  font-size: 2rem;
+}
+.qr-user .qr-codes {
+  grid-area: qr-codes;
+  padding: 10rem 0;
+}
+.qr-user .qr-codes .qr-codes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code-wrapper {
+  display: block;
+  padding: 1rem;
+  border-radius: 2rem;
+  background-color: white;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code {
+  display: block;
+  padding: 1rem;
+  border-radius: 2rem;
+  background-color: inherit;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: inline;
+  float: left;
+  margin-bottom: 20px;
+  border-radius: 2rem;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code h3 {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code a, .qr-user .qr-codes .qr-codes-grid .qr-code input {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code input {
+  border-radius: 0.6666666667rem;
+  border: solid 1px #001D3D;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .tags-container {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .tags-container .tag-icon {
+  display: inline;
+  float: left;
+  width: 90%;
+  margin: 0 1rem;
+  padding: 1rem;
+  color: #001D3D;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .tags-container .tag {
+  display: inline-block;
+  padding: 0.8rem;
+  margin: 0.5rem;
+  border-radius: 1rem;
+  font-size: 1.6rem;
+  color: white;
+  background-color: rgba(0, 8, 20, 0.8);
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .tags-container .tag:first-child {
+  margin: 0.5rem 0;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code button {
+  display: inline;
+  width: 4rem;
+  margin: 2rem 1rem;
+  padding: 1rem;
+  float: right;
+  color: #000814;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code button.trash {
+  background-color: #ff0a0a;
+  color: white;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .edit-qr-code {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(255, 255, 255, 0.5);
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .edit-qr-code label {
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: #000814;
+  margin: 1rem 2rem;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .edit-qr-code .approve-edit {
+  display: flex;
+  justify-self: flex-end;
+  align-self: flex-end;
+  margin: 0 1rem;
+}
+.qr-user .inittxt {
+  width: 100%;
 }
 
 /*# sourceMappingURL=style.css.map */

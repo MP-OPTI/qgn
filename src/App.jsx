@@ -1,21 +1,24 @@
-//App.jsx
+// File: src/App.jsx
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
-import QRCodeGenerator from './pages/QRCodeGenerator';
-import Register from './pages/register';
-import Login from './pages/login';
-import Settings from './pages/settings';
+import QRCodeGenerator from './pages/HomePage';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import Settings from './pages/Settings';
+import LoggedInHome from './pages/LoggedInHome';
 import { ToastProvider, useToast } from './contexts/ToastProvider';
 import { auth } from './services/firebase';
 import './fontawesome';
+import Footer from './components/Footer';
 
-const MainApp = ({ isLoggedIn }) => {
+const MainApp = () => {
   const [user, setUser] = useState(null);
   const addToast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -38,31 +41,36 @@ const MainApp = ({ isLoggedIn }) => {
 
   return (
     <div className="App">
-      <nav>
-        <h1><Link to="/">snapq</Link></h1>
-        <div className="nav-links">
-          {!user && <Link to="/register"><i>Register</i> <FontAwesomeIcon icon="user-plus" /></Link>}
-          {!user && <Link to="/login"><i>Login</i> <FontAwesomeIcon icon="right-to-bracket" /></Link>}
-          {user && <Link to="/settings"><FontAwesomeIcon icon="user" /></Link>}
-          {user && <button onClick={handleLogout}><FontAwesomeIcon icon="right-from-bracket" /></button>}
-        </div>
-      </nav>
+      <header>
+        <nav>
+          <i><Link to="/">qgn</Link></i>
+          <div className="nav-links">
+            {!user && <Link to="/register"><i>Register</i> <FontAwesomeIcon icon="user-plus" /></Link>}
+            {!user && <Link to="/login"><i>Login</i> <FontAwesomeIcon icon="right-to-bracket" /></Link>}
+            {user && <Link to="/settings"><FontAwesomeIcon icon="user" /></Link>}
+            {user && <button onClick={handleLogout}><FontAwesomeIcon icon="right-from-bracket" /></button>}
+          </div>
+        </nav>
+      </header>
 
-      {!isLoggedIn && (
+      {location.pathname === '/' && !user && (
         <div className="hero">
-          <h1>Stop typing, start scanning</h1>
-          <h2>Paste your link below and get your QR instantly!</h2>
+          <h1>QR Codes, nothing else</h1>
+          <h2>#1 Copy url #2 Get QR Code</h2>
         </div>
       )}
-
+    
       <div className="qr">
         <Routes>
-          <Route path="/" element={<QRCodeGenerator />} />
+          <Route path="/" element={user ? <Navigate to="/home" /> : <QRCodeGenerator />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/home" element={user ? <LoggedInHome /> : <Navigate to="/login" />} />
         </Routes>
       </div>
+      
+      <Footer />
     </div>
   );
 };

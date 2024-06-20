@@ -1,0 +1,25 @@
+input {
+    display: block;
+    width: 100%;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    border-radius: calc($border-radius / 2);
+
+    @media (min-width: $breakpoint-large) {
+        width: 40rem;
+    }
+}
+
+button {
+    font-weight: 900;
+    margin: 2rem 0;
+    padding: 2rem;
+    width: 100%;
+    color: $black;
+    background-color: $yellow;
+    border-radius: calc($border-radius / 2);
+
+    @media (min-width: $breakpoint-large) {
+        width: auto;
+    }
+}

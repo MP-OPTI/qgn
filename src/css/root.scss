@@ -34,6 +34,7 @@ html, body {
   font-size: 10px;
   background-color: $black;
   font-family: Arial, sans-serif;
+
 }
 
 article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section {
@@ -65,7 +66,6 @@ table {
 a, button {
   font-size: 1.6rem;
   cursor: pointer;
-  border-radius: calc($border-radius/2);
 
   &.green {
     color: $black !important;

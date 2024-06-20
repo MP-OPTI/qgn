@@ -3,7 +3,7 @@
 import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import qLogo from '../../assets/q-logo.png';
+import qLogo from '../../assets/q-logo.webp';
 import useDownloadQRCode from '../../hooks/useDownloadQRCode';
 import { useSpring, animated } from '@react-spring/web';
 
@@ -34,7 +34,6 @@ const QRCodeDisplay = ({
 
   return (
     <div className="qr-code" key={qrCode.id} ref={qrRef}>
-      <animated.div style={springProps}>
         <QRCode
           value={qrCode.value}
           size={300}
@@ -86,7 +85,7 @@ const QRCodeDisplay = ({
               placeholder="Tags (comma separated)"
               style={{ marginBottom: '10px' }}
             />
-            <div>
+            <div className="approve-edit">
               <button className="green" type="submit" style={{ marginRight: '5px' }}><FontAwesomeIcon icon="check" /></button>
               <button className="black" onClick={() => handleEdit(null, '', '', '')}><FontAwesomeIcon icon="xmark" /></button>
             </div>
@@ -102,7 +101,6 @@ const QRCodeDisplay = ({
             <FontAwesomeIcon icon="download" />
           </button>
         </div>
-      </animated.div>
     </div>
   );
 };

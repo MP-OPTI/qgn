@@ -1,4 +1,4 @@
-//settings.jsx
+// src/pages/Settings.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../services/firebase';
@@ -9,7 +9,7 @@ import PasswordChange from '../components/Settings/PasswordChange';
 import AccountDeletion from '../components/Settings/AccountDeletion';
 
 const Settings = () => {
-  const { user, emailVerified, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const addToast = useToast();
   
@@ -40,7 +40,7 @@ const Settings = () => {
         <>
           <EmailStatus
             user={user}
-            emailVerified={emailVerified}
+            emailVerified={user?.emailVerified}
             newEmail={newEmail}
             setNewEmail={setNewEmail}
             currentPassword={currentPassword}

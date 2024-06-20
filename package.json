@@ -1,5 +1,5 @@
 {
-  "name": "snapq",
+  "name": "qgn",
   "private": false,
   "version": "0.0.0",
   "type": "module",
@@ -17,8 +17,10 @@
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@react-spring/web": "^9.7.3",
+    "axios": "^1.7.2",
     "dompurify": "^3.1.5",
     "firebase": "^10.12.2",
+    "lazy": "^1.0.11",
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

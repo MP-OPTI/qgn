@@ -35,7 +35,7 @@ export const useQRCode = (user) => {
     return () => unsubscribe();
   }, [user]);
 
-  const handleSubmit = async (url, title, tags) => {
+  const handleSubmit = async (url, title, tags = '') => {
     const sanitizedUrl = sanitizeInput(url);
     if (sanitizedUrl.trim() && user) {
       try {
@@ -43,7 +43,7 @@ export const useQRCode = (user) => {
           uid: user.uid,
           value: sanitizedUrl,
           title: title || 'Untitled',
-          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag), // Ensure tags is always a string
           createdAt: new Date(),
         });
       } catch (error) {
