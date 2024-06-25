@@ -87,6 +87,78 @@ const App = () => (
 export default App;
 
 
+// File: src\components\FilterIcons.jsx
+// File: src/components/FilterIcons.jsx
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSortAlphaDown, faSortAlphaUp, faClock, faTags, faTag } from '@fortawesome/free-solid-svg-icons';
+
+const FilterIcons = ({ filter, setFilter }) => {
+  return (
+    <div className="filter">
+      <FontAwesomeIcon
+        icon={faClock}
+        size="2x"
+        title="Newest Added"
+        onClick={() => setFilter('newest')}
+        style={{ cursor: 'pointer', marginRight: '10px', color: filter === 'newest' ? 'yellow' : 'white' }}
+      />
+      <FontAwesomeIcon
+        icon={faSortAlphaDown}
+        size="2x"
+        title="A-Z"
+        onClick={() => setFilter('az')}
+        style={{ cursor: 'pointer', marginRight: '10px', color: filter === 'az' ? 'yellow' : 'white' }}
+      />
+      <FontAwesomeIcon
+        icon={faSortAlphaUp}
+        size="2x"
+        title="Z-A"
+        onClick={() => setFilter('za')}
+        style={{ cursor: 'pointer', marginRight: '10px', color: filter === 'za' ? 'yellow' : 'white' }}
+      />
+      <FontAwesomeIcon
+        icon={faTags}
+        size="2x"
+        title="Most Tagged"
+        onClick={() => setFilter('mostTagged')}
+        style={{ cursor: 'pointer', marginRight: '10px', color: filter === 'mostTagged' ? 'yellow' : 'white' }}
+      />
+      <FontAwesomeIcon
+        icon={faTag}
+        size="2x"
+        title="Least Tagged"
+        onClick={() => setFilter('leastTagged')}
+        style={{ cursor: 'pointer', marginRight: '10px', color: filter === 'leastTagged' ? 'yellow' : 'white' }}
+      />
+    </div>
+  );
+};
+
+export default FilterIcons;
+
+
+// File: src\components\FilterOptions.jsx
+// File: src/components/FilterOptions.jsx
+import React from 'react';
+
+const FilterOptions = ({ filter, setFilter }) => {
+  return (
+    <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ marginLeft: '20px', padding: '10px' }}>
+      <option value="newest">Newest added</option>
+      <option value="oldest">Oldest added</option>
+      <option value="az">A-Z</option>
+      <option value="za">Z-A</option>
+      <option value="mostTagged">Most Tagged</option>
+      <option value="leastTagged">Least Tagged</option>
+      <option value="recentlyUpdated">Recently Updated</option>
+    </select>
+  );
+};
+
+export default FilterOptions;
+
+
 // File: src\components\Footer.jsx
 // src/components/Footer.jsx
 import React from 'react';
@@ -417,6 +489,24 @@ const RegisterForm = ({ email, setEmail, password, setPassword, handleSubmit }) 
 };
 
 export default RegisterForm;
+
+
+// File: src\components\SearchBar.jsx
+// File: src/components/SearchBar.jsx
+import React from 'react';
+
+const SearchBar = ({ searchQuery, setSearchQuery }) => {
+  return (
+    <input
+      type="text"
+      placeholder="Search by URL, title, or tags"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  );
+};
+
+export default SearchBar;
 
 
 // File: src\components\Settings\AccountDeletion.jsx
@@ -960,15 +1050,19 @@ export default HomePage;
 
 
 // File: src\pages\LoggedInHome.jsx
-// src/pages/LoggedInHome.jsx
-import React from 'react';
+// File: src/pages/LoggedInHome.jsx
+import React, { useState } from 'react';
 import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
+import SearchBar from '../components/SearchBar';
+import FilterIcons from '../components/FilterIcons';
 import { useAuth } from '../hooks/useAuth';
 import { useQRCode } from '../hooks/useQRCode';
 
 const LoggedInHome = () => {
   const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('newest');
   const {
     qrCodes,
     loading,
@@ -985,17 +1079,53 @@ const LoggedInHome = () => {
     handleEditSubmit
   } = useQRCode(user);
 
+  const filteredQRCodes = qrCodes
+    .filter(qrCode => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        qrCode.value.toLowerCase().includes(searchLower) ||
+        qrCode.title.toLowerCase().includes(searchLower) ||
+        (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
+      );
+    })
+    .sort((a, b) => {
+      if (filter === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (filter === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else if (filter === 'az') {
+        return a.title.localeCompare(b.title);
+      } else if (filter === 'za') {
+        return b.title.localeCompare(a.title);
+      } else if (filter === 'mostTagged') {
+        return (b.tags?.length || 0) - (a.tags?.length || 0);
+      } else if (filter === 'leastTagged') {
+        return (a.tags?.length || 0) - (b.tags?.length || 0);
+      } else if (filter === 'recentlyUpdated') {
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      }
+      return 0;
+    });
+
   return (
     <div className="qr-user">
+
       <div className="qr-generator">
         <QRCodeForm handleSubmit={handleSubmit} showGenerateButton={true} isLoggedIn={!!user} />
       </div>
+
       <div className="qr-userhero">
         <h2>#1 Copy url</h2>
         <h2>#2 Get QR Code</h2>
         <h2>#3 Store them for later</h2>
         <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
       </div>
+
+      <div className="qr-search">
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <FilterIcons filter={filter} setFilter={setFilter} />
+      </div>
+      
       <div className="qr-codes">
         {user && (
           <div>
@@ -1003,7 +1133,7 @@ const LoggedInHome = () => {
               <p>Loading QR codes...</p>
             ) : (
               <QRCodeList
-                qrCodes={qrCodes}
+                qrCodes={filteredQRCodes}
                 editingId={editingId}
                 editingUrl={editingUrl}
                 editingTitle={editingTitle}
@@ -1441,21 +1571,27 @@ footer p {
   margin: 4rem 0;
 }
 
+body {
+  height: auto;
+  background: linear-gradient(to top, rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.8), rgba(0, 8, 20, 0.6)), url(../../assets/bg1.webp) no-repeat top center;
+  background-size: cover;
+  padding: 2rem;
+}
+@media (min-width: 576px) {
+  body {
+    padding: 8rem;
+  }
+}
+
 .App {
+  margin: 0 auto;
   display: grid;
   row-gap: 4rem;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
   grid-template-areas: "header" "hero" "qr" "footer";
   min-height: 100vh;
-  background: linear-gradient(to top, rgba(0, 8, 20, 0.99), rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.7)), url(../../assets/bg1.webp) no-repeat top center;
-  background-size: cover;
-  padding: 2rem;
-}
-@media (min-width: 576px) {
-  .App {
-    padding: 8rem;
-  }
+  max-width: 1600px;
 }
 
 header {
@@ -1819,12 +1955,12 @@ footer {
   row-gap: 5rem;
   grid-template-columns: auto;
   grid-template-rows: auto auto;
-  grid-template-areas: "qr-userhero" "qr-generator" "qr-codes";
+  grid-template-areas: "qr-userhero" "qr-generator" "qr-search" "qr-codes";
 }
 @media (min-width: 768px) {
   .qr-user {
     grid-template-columns: 50% 50%;
-    grid-template-areas: "qr-generator qr-userhero" "qr-codes qr-codes";
+    grid-template-areas: "qr-generator qr-userhero" "qr-search qr-search" "qr-codes qr-codes";
   }
 }
 .qr-user .qr-generator {
@@ -1850,9 +1986,46 @@ footer {
   margin: 1rem 0;
   font-size: 2rem;
 }
+.qr-user .qr-search {
+  grid-area: qr-search;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-columns: auto;
+  grid-template-areas: "search" "filter";
+  align-items: center;
+  padding: 10rem 0 0 0;
+}
+@media (min-width: 992px) {
+  .qr-user .qr-search {
+    grid-template-rows: auto;
+    grid-template-areas: "search filter";
+  }
+}
+@media (min-width: 768px) {
+  .qr-user .qr-search {
+    grid-template-columns: 1fr auto;
+  }
+}
+.qr-user .qr-search input {
+  grid-area: search;
+  font-weight: 900;
+}
+.qr-user .qr-search .filter {
+  grid-area: filter;
+  justify-self: end;
+  margin: 2rem 0;
+}
+.qr-user .qr-search .filter > svg {
+  margin: 1rem;
+}
+@media (min-width: 768px) {
+  .qr-user .qr-search .filter {
+    margin: 0;
+  }
+}
 .qr-user .qr-codes {
   grid-area: qr-codes;
-  padding: 10rem 0;
+  padding: 0 0 10rem 0;
 }
 .qr-user .qr-codes .qr-codes-grid {
   display: grid;

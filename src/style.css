@@ -231,21 +231,27 @@ footer p {
   margin: 4rem 0;
 }
 
+body {
+  height: auto;
+  background: linear-gradient(to top, rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.8), rgba(0, 8, 20, 0.6)), url(../../assets/bg1.webp) no-repeat top center;
+  background-size: cover;
+  padding: 2rem;
+}
+@media (min-width: 576px) {
+  body {
+    padding: 8rem;
+  }
+}
+
 .App {
+  margin: 0 auto;
   display: grid;
   row-gap: 4rem;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
   grid-template-areas: "header" "hero" "qr" "footer";
   min-height: 100vh;
-  background: linear-gradient(to top, rgba(0, 8, 20, 0.99), rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.7)), url(../../assets/bg1.webp) no-repeat top center;
-  background-size: cover;
-  padding: 2rem;
-}
-@media (min-width: 576px) {
-  .App {
-    padding: 8rem;
-  }
+  max-width: 1600px;
 }
 
 header {
@@ -609,12 +615,12 @@ footer {
   row-gap: 5rem;
   grid-template-columns: auto;
   grid-template-rows: auto auto;
-  grid-template-areas: "qr-userhero" "qr-generator" "qr-codes";
+  grid-template-areas: "qr-userhero" "qr-generator" "qr-search" "qr-codes";
 }
 @media (min-width: 768px) {
   .qr-user {
     grid-template-columns: 50% 50%;
-    grid-template-areas: "qr-generator qr-userhero" "qr-codes qr-codes";
+    grid-template-areas: "qr-generator qr-userhero" "qr-search qr-search" "qr-codes qr-codes";
   }
 }
 .qr-user .qr-generator {
@@ -640,9 +646,46 @@ footer {
   margin: 1rem 0;
   font-size: 2rem;
 }
+.qr-user .qr-search {
+  grid-area: qr-search;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-columns: auto;
+  grid-template-areas: "search" "filter";
+  align-items: center;
+  padding: 10rem 0 0 0;
+}
+@media (min-width: 992px) {
+  .qr-user .qr-search {
+    grid-template-rows: auto;
+    grid-template-areas: "search filter";
+  }
+}
+@media (min-width: 768px) {
+  .qr-user .qr-search {
+    grid-template-columns: 1fr auto;
+  }
+}
+.qr-user .qr-search input {
+  grid-area: search;
+  font-weight: 900;
+}
+.qr-user .qr-search .filter {
+  grid-area: filter;
+  justify-self: end;
+  margin: 2rem 0;
+}
+.qr-user .qr-search .filter > svg {
+  margin: 1rem;
+}
+@media (min-width: 768px) {
+  .qr-user .qr-search .filter {
+    margin: 0;
+  }
+}
 .qr-user .qr-codes {
   grid-area: qr-codes;
-  padding: 10rem 0;
+  padding: 0 0 10rem 0;
 }
 .qr-user .qr-codes .qr-codes-grid {
   display: grid;

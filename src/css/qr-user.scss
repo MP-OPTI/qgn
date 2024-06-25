@@ -6,12 +6,14 @@
     grid-template-areas:
         "qr-userhero"
         "qr-generator"
+        "qr-search"
         "qr-codes";
 
       @media (min-width: $breakpoint-medium) {
         grid-template-columns: 50% 50%;
         grid-template-areas:
             "qr-generator qr-userhero"
+            "qr-search qr-search"
             "qr-codes qr-codes";
   
       }
@@ -45,9 +47,48 @@
         }
     }
 
+    .qr-search {
+        grid-area: qr-search;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-columns: auto;
+        grid-template-areas:
+        "search"
+        "filter";
+        align-items: center; 
+        padding: 10rem 0 0 0;
+
+        @media (min-width: $breakpoint-large) {
+            grid-template-rows: auto;
+            grid-template-areas:
+            "search filter";
+        }
+        @media (min-width: $breakpoint-medium) {
+            grid-template-columns: 1fr auto;
+        }
+
+        input {
+            grid-area: search;
+            font-weight: 900;
+        }
+        .filter {
+            grid-area: filter;
+            justify-self: end;
+            margin: 2rem 0;
+            > svg {
+                margin: 1rem;
+            }
+
+            @media (min-width: $breakpoint-medium) {
+                margin: 0;
+            }
+        }
+
+    }
+
     .qr-codes {
         grid-area: qr-codes;
-        padding: 10rem 0;
+        padding: 0 0 10rem 0;
 
         .qr-codes-grid {
             display: grid;
