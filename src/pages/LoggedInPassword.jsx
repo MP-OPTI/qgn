@@ -1,10 +1,8 @@
 // src/pages/LoggedInHome.jsx
 import React, { useState } from 'react';
-import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
 import SearchBar from '../components/SearchBar';
-import FilterIcons from '../components/FilterIcons';
-import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
+import FilterIcons from '../components/Filter/FilterIcons';
 import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
 import { useAuth } from '../hooks/useAuth';
 import { useQRCode } from '../hooks/useQRCode';
@@ -12,8 +10,8 @@ import { useQRCode } from '../hooks/useQRCode';
 const LoggedInHome = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [qrType, setQrType] = useState('');
   const [filter, setFilter] = useState('newest');
-  const [activeForm, setActiveForm] = useState('url');
   const {
     qrCodes,
     loading,
@@ -33,11 +31,13 @@ const LoggedInHome = () => {
   const filteredQRCodes = qrCodes
     .filter(qrCode => {
       const searchLower = searchQuery.toLowerCase();
-      return (
+      const matchesSearchQuery = (
         qrCode.value.toLowerCase().includes(searchLower) ||
         qrCode.title.toLowerCase().includes(searchLower) ||
         (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
       );
+      const matchesQrType = qrType === '' || qrCode.type === qrType;
+      return matchesSearchQuery && matchesQrType;
     })
     .sort((a, b) => {
       if (filter === 'newest') {
@@ -73,7 +73,12 @@ const LoggedInHome = () => {
       </div>
 
       <div className="qr-search">
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          qrType={qrType}
+          setQrType={setQrType}
+        />
         <FilterIcons filter={filter} setFilter={setFilter} />
       </div>
       

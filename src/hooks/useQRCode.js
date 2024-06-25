@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { sanitizeInput } from '../utils/sanitizeInput';
-
+// src/hooks/useQRCode.js
 export const useQRCode = (user) => {
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,8 +43,8 @@ export const useQRCode = (user) => {
           uid: user.uid,
           value: sanitizedUrl,
           title: title || 'Untitled',
-          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag), // Ensure tags is always a string
-          type, // Add the type field here
+          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          type,
           createdAt: new Date(),
         });
       } catch (error) {

@@ -17,6 +17,7 @@ import LoggedInPassword from './pages/LoggedInPassword';
 import WiFiPage from './pages/WiFi';
 import PasswordPage from './pages/Password';
 import Footer from './components/Footer';
+import Hero from './components/Hero';
 
 const MainApp = () => {
   const [user, setUser] = useState(null);
@@ -43,6 +44,23 @@ const MainApp = () => {
     }
   };
 
+  const renderHero = (path) => {
+    if (!user) {
+      const heroContent = {
+        '/': ['QR Codes, nothing else', '#1 Copy url   #2 Get QR Code'],
+        '/url': ['QR Codes, nothing else', '#1 Copy url   #2 Get QR Code'],
+        '/wifi': ['QR Codes, nothing else', '#1 Write WiFi SSID/Name and Pass   #2 Get QR Code'],
+        '/password': ['QR Codes, nothing else', '#1 Generate Password   #2 Get QR Code']
+      };
+
+      if (heroContent[path]) {
+        return <Hero title={heroContent[path][0]} subtitle={heroContent[path][1]} />;
+      } else {
+        return null;
+      }
+    }
+    return null;
+  };
 
   return (
     <>
@@ -69,33 +87,7 @@ const MainApp = () => {
           </nav>
         </header>
 
-        {location.pathname === '/' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Copy url &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
-
-        {location.pathname === '/url' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Copy url &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
-
-        {location.pathname === '/wifi' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Write WiFi SSID/Name and Pass &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
-
-        {location.pathname === '/password' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Generate Password &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
+        {renderHero(location.pathname)}
 
         <div className="qr">
           <Routes>

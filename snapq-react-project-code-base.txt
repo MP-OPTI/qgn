@@ -18,6 +18,7 @@ import LoggedInPassword from './pages/LoggedInPassword';
 import WiFiPage from './pages/WiFi';
 import PasswordPage from './pages/Password';
 import Footer from './components/Footer';
+import Hero from './components/Hero';
 
 const MainApp = () => {
   const [user, setUser] = useState(null);
@@ -44,6 +45,23 @@ const MainApp = () => {
     }
   };
 
+  const renderHero = (path) => {
+    if (!user) {
+      const heroContent = {
+        '/': ['QR Codes, nothing else', '#1 Copy url   #2 Get QR Code'],
+        '/url': ['QR Codes, nothing else', '#1 Copy url   #2 Get QR Code'],
+        '/wifi': ['QR Codes, nothing else', '#1 Write WiFi SSID/Name and Pass   #2 Get QR Code'],
+        '/password': ['QR Codes, nothing else', '#1 Generate Password   #2 Get QR Code']
+      };
+
+      if (heroContent[path]) {
+        return <Hero title={heroContent[path][0]} subtitle={heroContent[path][1]} />;
+      } else {
+        return null;
+      }
+    }
+    return null;
+  };
 
   return (
     <>
@@ -70,33 +88,7 @@ const MainApp = () => {
           </nav>
         </header>
 
-        {location.pathname === '/' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Copy url &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
-
-        {location.pathname === '/url' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Copy url &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
-
-        {location.pathname === '/wifi' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Write WiFi SSID/Name and Pass &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
-
-        {location.pathname === '/password' && !user && (
-          <div className="hero">
-            <h1>QR Codes, nothing else</h1>
-            <h2>#1 Generate Password &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
-          </div>
-        )}
+        {renderHero(location.pathname)}
 
         <div className="qr">
           <Routes>
@@ -128,7 +120,7 @@ const App = () => (
 export default App;
 
 
-// File: src\components\FilterIcons.jsx
+// File: src\components\Filter\FilterIcons.jsx
 // File: src/components/FilterIcons.jsx
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -179,7 +171,7 @@ const FilterIcons = ({ filter, setFilter }) => {
 export default FilterIcons;
 
 
-// File: src\components\FilterOptions.jsx
+// File: src\components\Filter\FilterOptions.jsx
 // File: src/components/FilterOptions.jsx
 import React from 'react';
 
@@ -220,6 +212,19 @@ const Footer = () => {
 
 export default Footer;
 
+
+// File: src\components\Hero.jsx
+// src/components/Hero.jsx
+import React from 'react';
+
+const Hero = ({ title, subtitle }) => (
+  <div className="hero">
+    <h1>{title}</h1>
+    <h2>{subtitle}</h2>
+  </div>
+);
+
+export default Hero;
 
 // File: src\components\Login\LoginForm.jsx
 //LoginForm.jsx
@@ -521,8 +526,9 @@ const generatePassword = (length) => {
   return password;
 };
 
-const QRCodePasswordForm = ({ handleSubmit }) => {
+const QRCodePasswordForm = ({ handleSubmit, isLoggedIn }) => {
   const [password, setPassword] = useState('');
+  const [tags, setTags] = useState('');
 
   useEffect(() => {
     const newPassword = generatePassword(32);
@@ -537,7 +543,8 @@ const QRCodePasswordForm = ({ handleSubmit }) => {
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedPassword = sanitizeInput(password);
-    handleSubmit(sanitizedPassword, 'Generated Password', '', 'Password');
+    handleSubmit(sanitizedPassword, 'Generated Password', tags, 'Password');
+    setTags('');
   };
 
   return (
@@ -549,6 +556,14 @@ const QRCodePasswordForm = ({ handleSubmit }) => {
         readOnly
       />
       <button type="button" onClick={regeneratePassword}>Generate</button>
+      {isLoggedIn && (
+      <input
+        type="text"
+        placeholder="Tag1, Tag2, etc."
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+      />
+      )}
       <button type="submit">Get Password QR Code</button>
     </form>
   );
@@ -565,15 +580,17 @@ import { sanitizeInput } from '../../utils/sanitizeInput';
 const QRCodeWiFiForm = ({ handleSubmit, isLoggedIn }) => {
   const [ssid, setSsid] = useState('');
   const [password, setPassword] = useState('');
+  const [tags, setTags] = useState('');
 
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedSsid = sanitizeInput(ssid);
     const sanitizedPassword = sanitizeInput(password);
     const wifiString = `WIFI:S:${sanitizedSsid};T:WPA;P:${sanitizedPassword};;`;
-    handleSubmit(wifiString, ssid, '', 'WiFi');
+    handleSubmit(wifiString, ssid, tags, 'WiFi');
     setSsid('');
     setPassword('');
+    setTags('');
   };
 
   return (
@@ -591,6 +608,14 @@ const QRCodeWiFiForm = ({ handleSubmit, isLoggedIn }) => {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
+      {isLoggedIn && (
+      <input
+        type="text"
+        placeholder="Tag1, Tag2, etc."
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+      />
+      )}
       <button type="submit">Generate WiFi QR Code</button>
     </form>
   );
@@ -627,17 +652,25 @@ export default RegisterForm;
 
 
 // File: src\components\SearchBar.jsx
-// File: src/components/SearchBar.jsx
+// src/components/SearchBar.jsx
 import React from 'react';
 
-const SearchBar = ({ searchQuery, setSearchQuery }) => {
+const SearchBar = ({ searchQuery, setSearchQuery, qrType, setQrType }) => {
   return (
-    <input
-      type="text"
-      placeholder="Search by URL, title, or tags"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-    />
+    <div className="search-bar">
+      <input
+        type="text"
+        placeholder="Search by URL, title, or tags"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+      <select value={qrType} onChange={(e) => setQrType(e.target.value)}>
+        <option value="">All Types</option>
+        <option value="URL">URL</option>
+        <option value="WiFi">WiFi</option>
+        <option value="Password">Password</option>
+      </select>
+    </div>
   );
 };
 
@@ -994,7 +1027,7 @@ import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { sanitizeInput } from '../utils/sanitizeInput';
-
+// src/hooks/useQRCode.js
 export const useQRCode = (user) => {
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1034,8 +1067,8 @@ export const useQRCode = (user) => {
           uid: user.uid,
           value: sanitizedUrl,
           title: title || 'Untitled',
-          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag), // Ensure tags is always a string
-          type, // Add the type field here
+          tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          type,
           createdAt: new Date(),
         });
       } catch (error) {
@@ -1129,17 +1162,15 @@ import React, { useState } from 'react';
 import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
 import SearchBar from '../components/SearchBar';
-import FilterIcons from '../components/FilterIcons';
-import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
-import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
+import FilterIcons from '../components/Filter/FilterIcons';
 import { useAuth } from '../hooks/useAuth';
 import { useQRCode } from '../hooks/useQRCode';
 
 const LoggedInHome = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [qrType, setQrType] = useState('');
   const [filter, setFilter] = useState('newest');
-  const [activeForm, setActiveForm] = useState('url');
   const {
     qrCodes,
     loading,
@@ -1159,11 +1190,13 @@ const LoggedInHome = () => {
   const filteredQRCodes = qrCodes
     .filter(qrCode => {
       const searchLower = searchQuery.toLowerCase();
-      return (
+      const matchesSearchQuery = (
         qrCode.value.toLowerCase().includes(searchLower) ||
         qrCode.title.toLowerCase().includes(searchLower) ||
         (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
       );
+      const matchesQrType = qrType === '' || qrCode.type === qrType;
+      return matchesSearchQuery && matchesQrType;
     })
     .sort((a, b) => {
       if (filter === 'newest') {
@@ -1186,11 +1219,10 @@ const LoggedInHome = () => {
 
   return (
     <div className="qr-user">
-
       <div className="qr-generator">
         <QRCodeForm handleSubmit={handleSubmit} isLoggedIn={!!user} />
       </div>
- 
+
       <div className="qr-userhero">
         <h2>#1 Copy url</h2>
         <h2>#2 Get QR Code</h2>
@@ -1199,7 +1231,12 @@ const LoggedInHome = () => {
       </div>
 
       <div className="qr-search">
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          qrType={qrType}
+          setQrType={setQrType}
+        />
         <FilterIcons filter={filter} setFilter={setFilter} />
       </div>
       
@@ -1236,11 +1273,9 @@ export default LoggedInHome;
 // File: src\pages\LoggedInPassword.jsx
 // src/pages/LoggedInHome.jsx
 import React, { useState } from 'react';
-import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
 import SearchBar from '../components/SearchBar';
-import FilterIcons from '../components/FilterIcons';
-import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
+import FilterIcons from '../components/Filter/FilterIcons';
 import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
 import { useAuth } from '../hooks/useAuth';
 import { useQRCode } from '../hooks/useQRCode';
@@ -1248,8 +1283,8 @@ import { useQRCode } from '../hooks/useQRCode';
 const LoggedInHome = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [qrType, setQrType] = useState('');
   const [filter, setFilter] = useState('newest');
-  const [activeForm, setActiveForm] = useState('url');
   const {
     qrCodes,
     loading,
@@ -1269,11 +1304,13 @@ const LoggedInHome = () => {
   const filteredQRCodes = qrCodes
     .filter(qrCode => {
       const searchLower = searchQuery.toLowerCase();
-      return (
+      const matchesSearchQuery = (
         qrCode.value.toLowerCase().includes(searchLower) ||
         qrCode.title.toLowerCase().includes(searchLower) ||
         (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
       );
+      const matchesQrType = qrType === '' || qrCode.type === qrType;
+      return matchesSearchQuery && matchesQrType;
     })
     .sort((a, b) => {
       if (filter === 'newest') {
@@ -1309,7 +1346,12 @@ const LoggedInHome = () => {
       </div>
 
       <div className="qr-search">
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          qrType={qrType}
+          setQrType={setQrType}
+        />
         <FilterIcons filter={filter} setFilter={setFilter} />
       </div>
       
@@ -1346,20 +1388,18 @@ export default LoggedInHome;
 // File: src\pages\LoggedInWiFi.jsx
 // src/pages/LoggedInHome.jsx
 import React, { useState } from 'react';
-import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
 import SearchBar from '../components/SearchBar';
-import FilterIcons from '../components/FilterIcons';
+import FilterIcons from '../components/Filter/FilterIcons';
 import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
-import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
 import { useAuth } from '../hooks/useAuth';
 import { useQRCode } from '../hooks/useQRCode';
 
 const LoggedInHome = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [qrType, setQrType] = useState('');
   const [filter, setFilter] = useState('newest');
-  const [activeForm, setActiveForm] = useState('url');
   const {
     qrCodes,
     loading,
@@ -1379,11 +1419,13 @@ const LoggedInHome = () => {
   const filteredQRCodes = qrCodes
     .filter(qrCode => {
       const searchLower = searchQuery.toLowerCase();
-      return (
+      const matchesSearchQuery = (
         qrCode.value.toLowerCase().includes(searchLower) ||
         qrCode.title.toLowerCase().includes(searchLower) ||
         (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
       );
+      const matchesQrType = qrType === '' || qrCode.type === qrType;
+      return matchesSearchQuery && matchesQrType;
     })
     .sort((a, b) => {
       if (filter === 'newest') {
@@ -1418,8 +1460,13 @@ const LoggedInHome = () => {
         <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
       </div>
 
-      <div className="qr-search">
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+       <div className="qr-search">
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          qrType={qrType}
+          setQrType={setQrType}
+        />
         <FilterIcons filter={filter} setFilter={setFilter} />
       </div>
       
@@ -1708,7 +1755,7 @@ const URLPage = () => {
   return (
     <div className="qr-nonuser">
       <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleFormSubmit} showGenerateButton={true} isLoggedIn={false} />
+        <QRCodeForm handleSubmit={handleFormSubmit} isLoggedIn={false} />
       </div>
       <div className="qr-codes">
         {submittedUrl ? (

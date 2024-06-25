@@ -12,8 +12,9 @@ const generatePassword = (length) => {
   return password;
 };
 
-const QRCodePasswordForm = ({ handleSubmit }) => {
+const QRCodePasswordForm = ({ handleSubmit, isLoggedIn }) => {
   const [password, setPassword] = useState('');
+  const [tags, setTags] = useState('');
 
   useEffect(() => {
     const newPassword = generatePassword(32);
@@ -28,7 +29,8 @@ const QRCodePasswordForm = ({ handleSubmit }) => {
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedPassword = sanitizeInput(password);
-    handleSubmit(sanitizedPassword, 'Generated Password', '', 'Password');
+    handleSubmit(sanitizedPassword, 'Generated Password', tags, 'Password');
+    setTags('');
   };
 
   return (
@@ -40,6 +42,14 @@ const QRCodePasswordForm = ({ handleSubmit }) => {
         readOnly
       />
       <button type="button" onClick={regeneratePassword}>Generate</button>
+      {isLoggedIn && (
+      <input
+        type="text"
+        placeholder="Tag1, Tag2, etc."
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+      />
+      )}
       <button type="submit">Get Password QR Code</button>
     </form>
   );

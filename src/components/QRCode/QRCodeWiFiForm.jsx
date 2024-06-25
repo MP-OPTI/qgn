@@ -5,15 +5,17 @@ import { sanitizeInput } from '../../utils/sanitizeInput';
 const QRCodeWiFiForm = ({ handleSubmit, isLoggedIn }) => {
   const [ssid, setSsid] = useState('');
   const [password, setPassword] = useState('');
+  const [tags, setTags] = useState('');
 
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedSsid = sanitizeInput(ssid);
     const sanitizedPassword = sanitizeInput(password);
     const wifiString = `WIFI:S:${sanitizedSsid};T:WPA;P:${sanitizedPassword};;`;
-    handleSubmit(wifiString, ssid, '', 'WiFi');
+    handleSubmit(wifiString, ssid, tags, 'WiFi');
     setSsid('');
     setPassword('');
+    setTags('');
   };
 
   return (
@@ -31,6 +33,14 @@ const QRCodeWiFiForm = ({ handleSubmit, isLoggedIn }) => {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
+      {isLoggedIn && (
+      <input
+        type="text"
+        placeholder="Tag1, Tag2, etc."
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+      />
+      )}
       <button type="submit">Generate WiFi QR Code</button>
     </form>
   );

@@ -34,7 +34,7 @@ const URLPage = () => {
   return (
     <div className="qr-nonuser">
       <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleFormSubmit} showGenerateButton={true} isLoggedIn={false} />
+        <QRCodeForm handleSubmit={handleFormSubmit} isLoggedIn={false} />
       </div>
       <div className="qr-codes">
         {submittedUrl ? (
