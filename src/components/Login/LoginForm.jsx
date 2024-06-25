@@ -1,9 +1,11 @@
-//LoginForm.jsx
+// File: src/components/Login/LoginForm.jsx
 import React from 'react';
+import CustomCheckbox from '../CustomCheckbox'; // Adjust the import path as necessary
 
-const LoginForm = ({ email, setEmail, password, setPassword, handleSubmit }) => {
+const LoginForm = ({ email, setEmail, password, setPassword, handleSubmit, rememberMe, setRememberMe }) => {
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="form-container">
+      <h2>Login</h2>
       <input
         type="email"
         placeholder="Email"
@@ -16,6 +18,10 @@ const LoginForm = ({ email, setEmail, password, setPassword, handleSubmit }) => 
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
+      <div className="checkbox-container">
+        <CustomCheckbox checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+        <label htmlFor="rememberMe">Remember Me</label>
+      </div>
       <button type="submit">Login</button>
     </form>
   );

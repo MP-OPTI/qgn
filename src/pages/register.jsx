@@ -25,7 +25,6 @@ const Register = () => {
 
   return (
     <div className="register">
-      <h2>Register</h2>
       <RegisterForm
         email={email}
         setEmail={setEmail}

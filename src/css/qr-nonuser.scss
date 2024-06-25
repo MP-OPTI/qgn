@@ -114,13 +114,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem 4rem;
+    padding: 5rem;
     border-radius: $border-radius;
     background-color: $yellow;
     line-height: 2.5rem;
     font-size: 2rem;
     font-weight: 900;
     color: $black;
+    min-width: 80%;
     animation: slideIn 0.5s forwards;
 
     &.slide-out {
@@ -128,7 +129,8 @@
     }
 
     @media (min-width: $breakpoint-large) {
-      width: 60rem !important;
+      padding: 2rem 4rem;
+      min-width: 60rem;
     }
 
     p {

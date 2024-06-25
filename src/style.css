@@ -159,6 +159,61 @@ button {
   }
 }
 
+.custom-checkbox {
+  display: inline-block;
+  position: relative;
+  padding-left: 3.5rem;
+  cursor: pointer;
+  font-size: 1.6rem;
+  user-select: none;
+}
+
+.custom-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.custom-checkbox .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2.5rem;
+  width: 2.5rem;
+  background-color: #ccc;
+  border-radius: 0.4rem;
+}
+
+.custom-checkbox:hover input ~ .checkmark {
+  background-color: #b3b3b3;
+}
+
+.custom-checkbox input:checked ~ .checkmark {
+  background-color: #0aff4b;
+}
+
+.custom-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.custom-checkbox .checkmark:after {
+  left: 1rem;
+  top: 0.6rem;
+  width: 0.5rem;
+  height: 1rem;
+  border: solid #000814;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
 .top nav {
   display: flex;
   justify-content: space-between;
@@ -360,45 +415,42 @@ footer {
 }
 
 .login, .register {
-  padding: 5rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.login h2, .register h2 {
-  display: block;
-  padding: 5rem 0;
-  margin: 2rem auto;
+.login .form-container, .register .form-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  border-radius: 2rem;
+  max-width: 400px;
   width: 100%;
 }
-@media (min-width: 768px) {
-  .login h2, .register h2 {
-    max-width: 40rem;
-  }
-}
-.login input, .register input {
+.login .form-container h2, .register .form-container h2 {
+  text-align: center;
   font-size: 2rem;
-  display: block;
+  margin-bottom: 4rem;
+}
+.login .form-container input, .register .form-container input {
   width: 100%;
-  padding: 2rem;
-  margin: 2rem auto;
-  border-radius: 1rem;
 }
-@media (min-width: 768px) {
-  .login input, .register input {
-    max-width: 40rem;
-  }
+.login .form-container .checkbox-container, .register .form-container .checkbox-container {
+  display: flex;
+  align-items: center;
 }
-.login button, .register button {
-  display: block;
-  width: 100%;
-  padding: 2rem;
-  margin: 4rem auto;
-  font-weight: 900;
-  background-color: #FFD60A;
-  border-radius: 1rem;
+.login .form-container .checkbox-container .custom-checkbox, .register .form-container .checkbox-container .custom-checkbox {
+  margin-right: 0.5rem;
 }
-@media (min-width: 768px) {
-  .login button, .register button {
-    max-width: 40rem;
-  }
+.login .form-container .checkbox-container label, .register .form-container .checkbox-container label {
+  position: relative;
+  font-size: 1.6rem;
+}
+.login .form-container .checkbox-container label[for=rememberMe], .register .form-container .checkbox-container label[for=rememberMe] {
+  top: 1.3rem;
+}
+.login .form-container button, .register .form-container button {
+  margin: 4rem 0;
 }
 
 .settings {
@@ -628,13 +680,14 @@ footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 4rem;
+  padding: 5rem;
   border-radius: 2rem;
   background-color: #FFD60A;
   line-height: 2.5rem;
   font-size: 2rem;
   font-weight: 900;
   color: #000814;
+  min-width: 80%;
   animation: slideIn 0.5s forwards;
 }
 .qr-nonuser .message-to-user.slide-out {
@@ -642,7 +695,8 @@ footer {
 }
 @media (min-width: 992px) {
   .qr-nonuser .message-to-user {
-    width: 60rem !important;
+    padding: 2rem 4rem;
+    min-width: 60rem;
   }
 }
 .qr-nonuser .message-to-user p a {

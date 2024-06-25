@@ -23,3 +23,60 @@ button {
         width: auto;
     }
 }
+
+
+.custom-checkbox {
+    display: inline-block;
+    position: relative;
+    padding-left: 3.5rem;
+    cursor: pointer;
+    font-size: 1.6rem;
+    user-select: none;
+  }
+  
+  .custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  .custom-checkbox .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2.5rem;
+    width: 2.5rem;
+    background-color: #ccc;
+    border-radius: .4rem;
+  }
+  
+  .custom-checkbox:hover input ~ .checkmark {
+    background-color: #b3b3b3;
+  }
+  
+  .custom-checkbox input:checked ~ .checkmark {
+    background-color: $green;
+  }
+  
+  .custom-checkbox .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+  
+  .custom-checkbox input:checked ~ .checkmark:after {
+    display: block;
+  }
+  
+  .custom-checkbox .checkmark:after {
+    left: 1rem;
+    top: .6rem;
+    width: .5rem;
+    height: 1rem;
+    border: solid $black;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+  }
+  

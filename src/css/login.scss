@@ -1,40 +1,49 @@
-//login.scss
+// File: src/styles/login.scss
 
 .login, .register {
-    padding: 5rem 0;
-
-    h2 {
-        display:block;
-        padding: 5rem 0;
-        margin: 2rem auto;
-        width: 100%;
-        @media (min-width: $breakpoint-medium) {
-            max-width: 40rem;
-        }
-    }
-    input {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  
+    .form-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      border-radius: $border-radius;
+      max-width: 400px;
+      width: 100%;
+  
+      h2 {
+        text-align: center;
         font-size: 2rem;
-        display:block;
+        margin-bottom: 4rem;
+      }
+  
+      input {
         width: 100%;
-        padding: 2rem;
-        margin: 2rem auto;
-        border-radius: calc($border-radius/2);
-
-        @media (min-width: $breakpoint-medium) {
-            max-width: 40rem;
+      }
+  
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+  
+        .custom-checkbox {
+          margin-right: 0.5rem;
         }
-    }
-    button {
-        display:block;
-        width: 100%;
-        padding: 2rem;
-        margin: 4rem auto;
-        font-weight: 900;
-        background-color: $yellow;
-        border-radius: calc($border-radius/2);
-
-        @media (min-width: $breakpoint-medium) {
-            max-width: 40rem;
+  
+        label {
+            position: relative;
+            font-size: 1.6rem;
+            &[for="rememberMe"] {
+                top: 1.3rem;
+            }
         }
+      }
+  
+      button {
+        margin: 4rem 0;
+
+      }
     }
-}
+  }
+  

@@ -3,7 +3,8 @@ import React from 'react';
 
 const RegisterForm = ({ email, setEmail, password, setPassword, handleSubmit }) => {
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="form-container">
+      <h2>Register</h2>
       <input
         type="email"
         placeholder="Email"
