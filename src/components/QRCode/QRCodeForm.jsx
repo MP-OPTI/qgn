@@ -1,8 +1,8 @@
-// File: src/components/QRCode/QRCodeForm.jsx
+// src/components/QRCode/QRCodeForm.jsx
 import React, { useState } from 'react';
 import { sanitizeInput } from '../../utils/sanitizeInput';
 
-const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
+const QRCodeForm = ({ handleSubmit, isLoggedIn }) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
@@ -10,8 +10,7 @@ const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedUrl = sanitizeInput(url);
-    console.log('Form is submitting with URL:', sanitizedUrl);
-    handleSubmit(sanitizedUrl, title, tags); // Make sure to pass tags
+    handleSubmit(sanitizedUrl, title, tags, 'URL');
     setUrl('');
     setTitle('');
     setTags('');
@@ -44,7 +43,7 @@ const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
           />
         </>
       )}
-      {showGenerateButton && <button type="submit">Generate QR Code</button>}
+      <button type="submit">Generate QR Code</button>
     </form>
   );
 };

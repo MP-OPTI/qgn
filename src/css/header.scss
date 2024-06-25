@@ -1,49 +1,42 @@
 header {
-    
-    nav {
+  display: flex;
+  justify-content: center;
+
+  nav {
+    display: inline-block; // Change this from flex to inline-block
+    padding: 0rem;
+    border-radius: $border-radius;
+    backdrop-filter: blur(1rem);
+    background: rgba($black, 0.3);
+
+    .nav-links {
+      font-weight: 900;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 2rem 4rem;
 
-      border-radius: $border-radius;
-      backdrop-filter: blur(1rem);
-      background: rgba($white, 0.9);
-    
       i {
-        a {
-          position: relative;
-          color: $black;
-          margin: 0;
-          font-size: 4rem;
-          font-weight: 900;
-          top: -5px; // Adjusting for font-weight
+        display: none;
+        @media (min-width: $breakpoint-medium) {
+          display: inline-block;
         }
       }
-    
-      .nav-links {
-        font-weight: 900;
-        display: flex;
-        justify-content: space-between;
- 
-        i {
-          display: none;
-          @media (min-width: $breakpoint-medium) {
-            display: inline-block;
-          }
-        }
-        svg {
-          margin: 0 .4rem 0 .5rem;
-        }
+      svg {
+        margin: 0 0.4rem 0 0.5rem;
       }
-    
-      a, button {
-        color: $black;
-        margin: 0 1rem 0 0;
-        padding: 0;
-        text-decoration: none;
-        background: none;
-        border: none;
+    }
+
+    a, button {
+      color: $white;
+      margin: 0;
+      padding: 4rem 6rem;
+      text-decoration: none;
+      background: none;
+      border: none;
+      border-radius: $border-radius;
+
+      &.active {
+        background-color: rgba($black, .5);
       }
     }
   }
+}

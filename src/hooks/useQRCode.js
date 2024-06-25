@@ -1,4 +1,4 @@
-//useQRCode.js
+// src/hooks/useQRCode.js
 import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -35,7 +35,7 @@ export const useQRCode = (user) => {
     return () => unsubscribe();
   }, [user]);
 
-  const handleSubmit = async (url, title, tags = '') => {
+  const handleSubmit = async (url, title, tags = '', type) => {
     const sanitizedUrl = sanitizeInput(url);
     if (sanitizedUrl.trim() && user) {
       try {
@@ -44,6 +44,7 @@ export const useQRCode = (user) => {
           value: sanitizedUrl,
           title: title || 'Untitled',
           tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag), // Ensure tags is always a string
+          type, // Add the type field here
           createdAt: new Date(),
         });
       } catch (error) {

@@ -1,0 +1,45 @@
+.top {
+    
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4rem;
+    
+      i {
+        a {
+          position: relative;
+          color: $white;
+          margin: 0;
+          font-size: 3rem;
+          font-weight: 900;
+          top: -5px; // Adjusting for font-weight
+        }
+      }
+    
+      .nav-links {
+        font-weight: 900;
+        display: flex;
+        justify-content: space-between;
+ 
+        i {
+          display: none;
+          @media (min-width: $breakpoint-medium) {
+            display: inline-block;
+          }
+        }
+        svg {
+          margin: 0 .4rem 0 .5rem;
+        }
+      }
+    
+      a, button {
+        color: $white;
+        margin: 0 0 0 4rem;
+        padding: 0;
+        text-decoration: none;
+        background: none;
+        border: none;
+      }
+    }
+  }

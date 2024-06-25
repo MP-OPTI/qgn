@@ -172,6 +172,15 @@
                     }
                 }
 
+                .qr-type {
+                    position:absolute;
+                    bottom: 1.5rem;
+                    left: 2rem;
+                    font-weight: 900;
+                    font-size: 1.2rem;
+                    color: rgba($black, .4);
+                }
+
                 button {
                     display: inline;
                     width: 4rem;

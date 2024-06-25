@@ -1,4 +1,4 @@
-// File: src/components/QRCode/QRCodeDisplay.jsx
+// src/components/QRCode/QRCodeDisplay.jsx
 
 import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
@@ -101,6 +101,8 @@ const QRCodeDisplay = ({
             <FontAwesomeIcon icon="download" />
           </button>
         </div>
+
+        <div className="qr-type">{qrCode.type}</div>
     </div>
   );
 };

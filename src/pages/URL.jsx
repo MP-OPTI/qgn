@@ -1,11 +1,10 @@
-// File: src/pages/HomePage.jsx
+// File: src/pages/URL.jsx
 import React, { useState, useEffect } from 'react';
 import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeNonUserDisplay from '../components/QRCode/QRCodeNonUserDisplay';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import placeholderImage from '../assets/q-logo.png';
 
-const HomePage = () => {
+const URLPage = () => {
   const [submittedUrl, setSubmittedUrl] = useState('');
   const [showMessage, setShowMessage] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
@@ -56,4 +55,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default URLPage;

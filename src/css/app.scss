@@ -11,9 +11,8 @@ body {
 
   padding: 2rem;
   @media (min-width: $breakpoint-small) {
-    padding: 8rem;
+    padding: 2rem 8rem;
   }
-
 }
 
 .App {
@@ -23,12 +22,18 @@ body {
   grid-template-columns: 1fr;
   grid-template-rows: auto;
   grid-template-areas:
+    "top"
     "header"
     "hero"
     "qr"
     "footer";
   min-height: 100vh;
   max-width: 1600px;
+}
+
+.top {
+  grid-area: top;
+  padding: 0;
 }
 
 header {

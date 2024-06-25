@@ -1,18 +1,22 @@
 // File: src\App.jsx
-// File: src/App.jsx
+// src/App.jsx
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
-import QRCodeGenerator from './pages/HomePage';
+import { ToastProvider, useToast } from './contexts/ToastProvider';
+import { auth } from './services/firebase';
+import './fontawesome';
+import URLPage from './pages/URL';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
 import LoggedInHome from './pages/LoggedInHome';
-import { ToastProvider, useToast } from './contexts/ToastProvider';
-import { auth } from './services/firebase';
-import './fontawesome';
+import LoggedInWiFi from './pages/LoggedInWiFi';
+import LoggedInPassword from './pages/LoggedInPassword';
+import WiFiPage from './pages/WiFi';
+import PasswordPage from './pages/Password';
 import Footer from './components/Footer';
 
 const MainApp = () => {
@@ -40,9 +44,10 @@ const MainApp = () => {
     }
   };
 
+
   return (
-    <div className="App">
-      <header>
+    <>
+      <div className="top">
         <nav>
           <i><Link to="/">qgn</Link></i>
           <div className="nav-links">
@@ -52,27 +57,63 @@ const MainApp = () => {
             {user && <button onClick={handleLogout}><FontAwesomeIcon icon="right-from-bracket" /></button>}
           </div>
         </nav>
-      </header>
-
-      {location.pathname === '/' && !user && (
-        <div className="hero">
-          <h1>QR Codes, nothing else</h1>
-          <h2>#1 Copy url #2 Get QR Code</h2>
-        </div>
-      )}
-    
-      <div className="qr">
-        <Routes>
-          <Route path="/" element={user ? <Navigate to="/home" /> : <QRCodeGenerator />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/home" element={user ? <LoggedInHome /> : <Navigate to="/login" />} />
-        </Routes>
       </div>
-      
-      <Footer />
-    </div>
+
+      <div className="App">
+        <header>
+          <nav>
+            <div className="nav-links">
+              <Link to="/url" className={location.pathname === '/url' ? 'active' : ''}>URL </Link>
+              <Link to="/wifi" className={location.pathname === '/wifi' ? 'active' : ''}>WiFi </Link>
+              <Link to="/password" className={location.pathname === '/password' ? 'active' : ''}>Password </Link>
+            </div>
+          </nav>
+        </header>
+
+        {location.pathname === '/' && !user && (
+          <div className="hero">
+            <h1>QR Codes, nothing else</h1>
+            <h2>#1 Copy url &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
+          </div>
+        )}
+
+        {location.pathname === '/url' && !user && (
+          <div className="hero">
+            <h1>QR Codes, nothing else</h1>
+            <h2>#1 Copy url &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
+          </div>
+        )}
+
+        {location.pathname === '/wifi' && !user && (
+          <div className="hero">
+            <h1>QR Codes, nothing else</h1>
+            <h2>#1 Write WiFi SSID/Name and Pass &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
+          </div>
+        )}
+
+        {location.pathname === '/password' && !user && (
+          <div className="hero">
+            <h1>QR Codes, nothing else</h1>
+            <h2>#1 Generate Password &nbsp;&nbsp;&nbsp; #2 Get QR Code</h2>
+          </div>
+        )}
+
+        <div className="qr">
+          <Routes>
+            <Route path="/" element={user ? <Navigate to="/url" /> : <URLPage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/home" element={user ? <LoggedInHome /> : <Navigate to="/login" />} />
+            <Route path="/url" element={user ? <LoggedInHome /> : <URLPage />} />
+            <Route path="/wifi" element={user ? <LoggedInWiFi /> : <WiFiPage />} />
+            <Route path="/password" element={user ? <LoggedInPassword /> : <PasswordPage />} />
+          </Routes>
+        </div>
+
+        <Footer />
+      </div>
+    </>
   );
 };
 
@@ -208,7 +249,7 @@ export default LoginForm;
 
 
 // File: src\components\QRCode\QRCodeDisplay.jsx
-// File: src/components/QRCode/QRCodeDisplay.jsx
+// src/components/QRCode/QRCodeDisplay.jsx
 
 import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
@@ -311,6 +352,8 @@ const QRCodeDisplay = ({
             <FontAwesomeIcon icon="download" />
           </button>
         </div>
+
+        <div className="qr-type">{qrCode.type}</div>
     </div>
   );
 };
@@ -319,11 +362,11 @@ export default QRCodeDisplay;
 
 
 // File: src\components\QRCode\QRCodeForm.jsx
-// File: src/components/QRCode/QRCodeForm.jsx
+// src/components/QRCode/QRCodeForm.jsx
 import React, { useState } from 'react';
 import { sanitizeInput } from '../../utils/sanitizeInput';
 
-const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
+const QRCodeForm = ({ handleSubmit, isLoggedIn }) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
@@ -331,8 +374,7 @@ const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
   const onSubmit = (e) => {
     e.preventDefault();
     const sanitizedUrl = sanitizeInput(url);
-    console.log('Form is submitting with URL:', sanitizedUrl);
-    handleSubmit(sanitizedUrl, title, tags); // Make sure to pass tags
+    handleSubmit(sanitizedUrl, title, tags, 'URL');
     setUrl('');
     setTitle('');
     setTags('');
@@ -365,7 +407,7 @@ const QRCodeForm = ({ handleSubmit, showGenerateButton, isLoggedIn }) => {
           />
         </>
       )}
-      {showGenerateButton && <button type="submit">Generate QR Code</button>}
+      <button type="submit">Generate QR Code</button>
     </form>
   );
 };
@@ -462,6 +504,99 @@ const QRCodeNonUserDisplay = ({ submittedUrl }) => {
 };
 
 export default QRCodeNonUserDisplay;
+
+
+// File: src\components\QRCode\QRCodePasswordForm.jsx
+// src/components/QRCode/QRCodePasswordForm.jsx
+import React, { useState, useEffect } from 'react';
+import { sanitizeInput } from '../../utils/sanitizeInput';
+
+const generatePassword = (length) => {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    password += charset[randomIndex];
+  }
+  return password;
+};
+
+const QRCodePasswordForm = ({ handleSubmit }) => {
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    const newPassword = generatePassword(32);
+    setPassword(newPassword);
+  }, []);
+
+  const regeneratePassword = () => {
+    const newPassword = generatePassword(32);
+    setPassword(newPassword);
+  };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const sanitizedPassword = sanitizeInput(password);
+    handleSubmit(sanitizedPassword, 'Generated Password', '', 'Password');
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <h3>Generated Password</h3>
+      <input
+        type="text"
+        value={password}
+        readOnly
+      />
+      <button type="button" onClick={regeneratePassword}>Generate</button>
+      <button type="submit">Get Password QR Code</button>
+    </form>
+  );
+};
+
+export default QRCodePasswordForm;
+
+
+// File: src\components\QRCode\QRCodeWiFiForm.jsx
+// src/components/QRCode/QRCodeWiFiForm.jsx
+import React, { useState } from 'react';
+import { sanitizeInput } from '../../utils/sanitizeInput';
+
+const QRCodeWiFiForm = ({ handleSubmit, isLoggedIn }) => {
+  const [ssid, setSsid] = useState('');
+  const [password, setPassword] = useState('');
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const sanitizedSsid = sanitizeInput(ssid);
+    const sanitizedPassword = sanitizeInput(password);
+    const wifiString = `WIFI:S:${sanitizedSsid};T:WPA;P:${sanitizedPassword};;`;
+    handleSubmit(wifiString, ssid, '', 'WiFi');
+    setSsid('');
+    setPassword('');
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      {!isLoggedIn && <h3>Insert your SSID and Pass below</h3>}
+      <input
+        type="text"
+        placeholder="Enter SSID"
+        value={ssid}
+        onChange={(e) => setSsid(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Enter Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button type="submit">Generate WiFi QR Code</button>
+    </form>
+  );
+};
+
+export default QRCodeWiFiForm;
 
 
 // File: src\components\Register\RegisterForm.jsx
@@ -854,7 +989,7 @@ export default useDownloadQRCode;
 
 
 // File: src\hooks\useQRCode.js
-//useQRCode.js
+// src/hooks/useQRCode.js
 import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -891,7 +1026,7 @@ export const useQRCode = (user) => {
     return () => unsubscribe();
   }, [user]);
 
-  const handleSubmit = async (url, title, tags = '') => {
+  const handleSubmit = async (url, title, tags = '', type) => {
     const sanitizedUrl = sanitizeInput(url);
     if (sanitizedUrl.trim() && user) {
       try {
@@ -900,6 +1035,7 @@ export const useQRCode = (user) => {
           value: sanitizedUrl,
           title: title || 'Untitled',
           tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag), // Ensure tags is always a string
+          type, // Add the type field here
           createdAt: new Date(),
         });
       } catch (error) {
@@ -987,75 +1123,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 
 
-// File: src\pages\HomePage.jsx
-// File: src/pages/HomePage.jsx
-import React, { useState, useEffect } from 'react';
-import QRCodeForm from '../components/QRCode/QRCodeForm';
-import QRCodeNonUserDisplay from '../components/QRCode/QRCodeNonUserDisplay';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import placeholderImage from '../assets/q-logo.png';
-
-const HomePage = () => {
-  const [submittedUrl, setSubmittedUrl] = useState('');
-  const [showMessage, setShowMessage] = useState(false);
-  const [animateOut, setAnimateOut] = useState(false);
-
-  useEffect(() => {
-    if (!localStorage.getItem('hideMessage')) {
-      setTimeout(() => {
-        setShowMessage(true);
-      }, 3000);
-    }
-  }, []);
-
-  const handleCloseMessage = () => {
-    setAnimateOut(true);
-    setTimeout(() => {
-      setShowMessage(false);
-      setAnimateOut(false);
-      localStorage.setItem('hideMessage', 'true');
-    }, 500);
-  };
-
-  const handleFormSubmit = (url) => {
-    console.log('Form submitted with URL:', url);
-    setSubmittedUrl(url);
-  };
-
-  return (
-    <div className="qr-nonuser">
-      <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleFormSubmit} showGenerateButton={true} isLoggedIn={false} />
-      </div>
-      <div className="qr-codes">
-        {submittedUrl ? (
-          <QRCodeNonUserDisplay submittedUrl={submittedUrl} />
-        ) : (
-          <div className="qr-placeholder"><FontAwesomeIcon icon="qrcode" /></div>
-        )}
-      </div>
-      {showMessage && (
-        <div className={`message-to-user ${animateOut ? 'slide-out' : 'slide-in'}`}>
-          <button className="close-button" onClick={handleCloseMessage}>
-            <FontAwesomeIcon icon="xmark" />
-          </button>
-          <p>Want to save your QR Code? <a href="/register">Register</a> as a user, to save and download all your QR Codes!</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default HomePage;
-
-
 // File: src\pages\LoggedInHome.jsx
-// File: src/pages/LoggedInHome.jsx
+// src/pages/LoggedInHome.jsx
 import React, { useState } from 'react';
 import QRCodeForm from '../components/QRCode/QRCodeForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
 import SearchBar from '../components/SearchBar';
 import FilterIcons from '../components/FilterIcons';
+import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
+import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
 import { useAuth } from '../hooks/useAuth';
 import { useQRCode } from '../hooks/useQRCode';
 
@@ -1063,6 +1139,7 @@ const LoggedInHome = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('newest');
+  const [activeForm, setActiveForm] = useState('url');
   const {
     qrCodes,
     loading,
@@ -1111,11 +1188,231 @@ const LoggedInHome = () => {
     <div className="qr-user">
 
       <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleSubmit} showGenerateButton={true} isLoggedIn={!!user} />
+        <QRCodeForm handleSubmit={handleSubmit} isLoggedIn={!!user} />
+      </div>
+ 
+      <div className="qr-userhero">
+        <h2>#1 Copy url</h2>
+        <h2>#2 Get QR Code</h2>
+        <h2>#3 Store them for later</h2>
+        <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
+      </div>
+
+      <div className="qr-search">
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <FilterIcons filter={filter} setFilter={setFilter} />
+      </div>
+      
+      <div className="qr-codes">
+        {user && (
+          <div>
+            {loading ? (
+              <p>Loading QR codes...</p>
+            ) : (
+              <QRCodeList
+                qrCodes={filteredQRCodes}
+                editingId={editingId}
+                editingUrl={editingUrl}
+                editingTitle={editingTitle}
+                editingTags={editingTags}
+                setEditingUrl={setEditingUrl}
+                setEditingTitle={setEditingTitle}
+                setEditingTags={setEditingTags}
+                handleRemove={handleRemove}
+                handleEdit={handleEdit}
+                handleEditSubmit={handleEditSubmit}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default LoggedInHome;
+
+
+// File: src\pages\LoggedInPassword.jsx
+// src/pages/LoggedInHome.jsx
+import React, { useState } from 'react';
+import QRCodeForm from '../components/QRCode/QRCodeForm';
+import QRCodeList from '../components/QRCode/QRCodeList';
+import SearchBar from '../components/SearchBar';
+import FilterIcons from '../components/FilterIcons';
+import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
+import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
+import { useAuth } from '../hooks/useAuth';
+import { useQRCode } from '../hooks/useQRCode';
+
+const LoggedInHome = () => {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('newest');
+  const [activeForm, setActiveForm] = useState('url');
+  const {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    editingTitle,
+    editingTags,
+    setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  } = useQRCode(user);
+
+  const filteredQRCodes = qrCodes
+    .filter(qrCode => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        qrCode.value.toLowerCase().includes(searchLower) ||
+        qrCode.title.toLowerCase().includes(searchLower) ||
+        (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
+      );
+    })
+    .sort((a, b) => {
+      if (filter === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (filter === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else if (filter === 'az') {
+        return a.title.localeCompare(b.title);
+      } else if (filter === 'za') {
+        return b.title.localeCompare(a.title);
+      } else if (filter === 'mostTagged') {
+        return (b.tags?.length || 0) - (a.tags?.length || 0);
+      } else if (filter === 'leastTagged') {
+        return (a.tags?.length || 0) - (b.tags?.length || 0);
+      } else if (filter === 'recentlyUpdated') {
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      }
+      return 0;
+    });
+
+  return (
+    <div className="qr-user">
+
+      <div className="qr-generator">
+        <QRCodePasswordForm handleSubmit={handleSubmit} isLoggedIn={!!user} />
       </div>
 
       <div className="qr-userhero">
-        <h2>#1 Copy url</h2>
+        <h2>#1 Press Generate Password</h2>
+        <h2>#2 Get QR Code</h2>
+        <h2>#3 Store them for later</h2>
+        <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
+      </div>
+
+      <div className="qr-search">
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <FilterIcons filter={filter} setFilter={setFilter} />
+      </div>
+      
+      <div className="qr-codes">
+        {user && (
+          <div>
+            {loading ? (
+              <p>Loading QR codes...</p>
+            ) : (
+              <QRCodeList
+                qrCodes={filteredQRCodes}
+                editingId={editingId}
+                editingUrl={editingUrl}
+                editingTitle={editingTitle}
+                editingTags={editingTags}
+                setEditingUrl={setEditingUrl}
+                setEditingTitle={setEditingTitle}
+                setEditingTags={setEditingTags}
+                handleRemove={handleRemove}
+                handleEdit={handleEdit}
+                handleEditSubmit={handleEditSubmit}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default LoggedInHome;
+
+
+// File: src\pages\LoggedInWiFi.jsx
+// src/pages/LoggedInHome.jsx
+import React, { useState } from 'react';
+import QRCodeForm from '../components/QRCode/QRCodeForm';
+import QRCodeList from '../components/QRCode/QRCodeList';
+import SearchBar from '../components/SearchBar';
+import FilterIcons from '../components/FilterIcons';
+import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
+import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
+import { useAuth } from '../hooks/useAuth';
+import { useQRCode } from '../hooks/useQRCode';
+
+const LoggedInHome = () => {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('newest');
+  const [activeForm, setActiveForm] = useState('url');
+  const {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    editingTitle,
+    editingTags,
+    setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  } = useQRCode(user);
+
+  const filteredQRCodes = qrCodes
+    .filter(qrCode => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        qrCode.value.toLowerCase().includes(searchLower) ||
+        qrCode.title.toLowerCase().includes(searchLower) ||
+        (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
+      );
+    })
+    .sort((a, b) => {
+      if (filter === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (filter === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else if (filter === 'az') {
+        return a.title.localeCompare(b.title);
+      } else if (filter === 'za') {
+        return b.title.localeCompare(a.title);
+      } else if (filter === 'mostTagged') {
+        return (b.tags?.length || 0) - (a.tags?.length || 0);
+      } else if (filter === 'leastTagged') {
+        return (a.tags?.length || 0) - (b.tags?.length || 0);
+      } else if (filter === 'recentlyUpdated') {
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      }
+      return 0;
+    });
+
+  return (
+    <div className="qr-user">
+
+      <div className="qr-generator">
+        <QRCodeWiFiForm handleSubmit={handleSubmit} isLoggedIn={!!user} />
+      </div>
+
+      <div className="qr-userhero">
+        <h2>#1 Insert SSID and Pass</h2>
         <h2>#2 Get QR Code</h2>
         <h2>#3 Store them for later</h2>
         <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
@@ -1197,6 +1494,68 @@ const Login = () => {
 };
 
 export default Login;
+
+
+// File: src\pages\Password.jsx
+// File: src/pages/Password.jsx
+
+import React, { useState, useEffect } from 'react';
+import QRCodePasswordForm from '../components/QRCode/QRCodePasswordForm';
+import QRCodeNonUserDisplay from '../components/QRCode/QRCodeNonUserDisplay';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+const PasswordPage = () => {
+  const [submittedPassword, setSubmittedPassword] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
+  const [animateOut, setAnimateOut] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('hideMessage')) {
+      setTimeout(() => {
+        setShowMessage(true);
+      }, 3000);
+    }
+  }, []);
+
+  const handleCloseMessage = () => {
+    setAnimateOut(true);
+    setTimeout(() => {
+      setShowMessage(false);
+      setAnimateOut(false);
+      localStorage.setItem('hideMessage', 'true');
+    }, 500);
+  };
+
+  const handleFormSubmit = (password) => {
+    console.log('Form submitted with Password:', password);
+    setSubmittedPassword(password);
+  };
+
+  return (
+    <div className="qr-nonuser">
+      <div className="qr-generator">
+        <QRCodePasswordForm handleSubmit={handleFormSubmit} />
+      </div>
+      <div className="qr-codes">
+        {submittedPassword ? (
+          <QRCodeNonUserDisplay submittedUrl={submittedPassword} />
+        ) : (
+          <div className="qr-placeholder"><FontAwesomeIcon icon="qrcode" /></div>
+        )}
+      </div>
+      {showMessage && (
+        <div className={`message-to-user ${animateOut ? 'slide-out' : 'slide-in'}`}>
+          <button className="close-button" onClick={handleCloseMessage}>
+            <FontAwesomeIcon icon="xmark" />
+          </button>
+          <p>Want to save your QR Code? <a href="/register">Register</a> as a user, to save and download all your QR Codes!</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PasswordPage;
 
 
 // File: src\pages\Register.jsx
@@ -1310,6 +1669,128 @@ const Settings = () => {
 };
 
 export default Settings;
+
+
+// File: src\pages\URL.jsx
+// File: src/pages/URL.jsx
+import React, { useState, useEffect } from 'react';
+import QRCodeForm from '../components/QRCode/QRCodeForm';
+import QRCodeNonUserDisplay from '../components/QRCode/QRCodeNonUserDisplay';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+const URLPage = () => {
+  const [submittedUrl, setSubmittedUrl] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
+  const [animateOut, setAnimateOut] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('hideMessage')) {
+      setTimeout(() => {
+        setShowMessage(true);
+      }, 3000);
+    }
+  }, []);
+
+  const handleCloseMessage = () => {
+    setAnimateOut(true);
+    setTimeout(() => {
+      setShowMessage(false);
+      setAnimateOut(false);
+      localStorage.setItem('hideMessage', 'true');
+    }, 500);
+  };
+
+  const handleFormSubmit = (url) => {
+    console.log('Form submitted with URL:', url);
+    setSubmittedUrl(url);
+  };
+
+  return (
+    <div className="qr-nonuser">
+      <div className="qr-generator">
+        <QRCodeForm handleSubmit={handleFormSubmit} showGenerateButton={true} isLoggedIn={false} />
+      </div>
+      <div className="qr-codes">
+        {submittedUrl ? (
+          <QRCodeNonUserDisplay submittedUrl={submittedUrl} />
+        ) : (
+          <div className="qr-placeholder"><FontAwesomeIcon icon="qrcode" /></div>
+        )}
+      </div>
+      {showMessage && (
+        <div className={`message-to-user ${animateOut ? 'slide-out' : 'slide-in'}`}>
+          <button className="close-button" onClick={handleCloseMessage}>
+            <FontAwesomeIcon icon="xmark" />
+          </button>
+          <p>Want to save your QR Code? <a href="/register">Register</a> as a user, to save and download all your QR Codes!</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default URLPage;
+
+
+// File: src\pages\WiFi.jsx
+// File: src/pages/WiFi.jsx
+import React, { useState, useEffect } from 'react';
+import QRCodeWiFiForm from '../components/QRCode/QRCodeWiFiForm';
+import QRCodeNonUserDisplay from '../components/QRCode/QRCodeNonUserDisplay';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+const WiFiPage = () => {
+  const [submittedWifi, setSubmittedWifi] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
+  const [animateOut, setAnimateOut] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('hideMessage')) {
+      setTimeout(() => {
+        setShowMessage(true);
+      }, 3000);
+    }
+  }, []);
+
+  const handleCloseMessage = () => {
+    setAnimateOut(true);
+    setTimeout(() => {
+      setShowMessage(false);
+      setAnimateOut(false);
+      localStorage.setItem('hideMessage', 'true');
+    }, 500);
+  };
+
+  const handleFormSubmit = (wifiString) => {
+    console.log('Form submitted with WiFi String:', wifiString);
+    setSubmittedWifi(wifiString);
+  };
+
+  return (
+    <div className="qr-nonuser">
+      <div className="qr-generator">
+        <QRCodeWiFiForm handleSubmit={handleFormSubmit} />
+      </div>
+      <div className="qr-codes">
+        {submittedWifi ? (
+          <QRCodeNonUserDisplay submittedUrl={submittedWifi} />
+        ) : (
+          <div className="qr-placeholder"><FontAwesomeIcon icon="qrcode" /></div>
+        )}
+      </div>
+      {showMessage && (
+        <div className={`message-to-user ${animateOut ? 'slide-out' : 'slide-in'}`}>
+          <button className="close-button" onClick={handleCloseMessage}>
+            <FontAwesomeIcon icon="xmark" />
+          </button>
+          <p>Want to save your QR Code? <a href="/register">Register</a> as a user, to save and download all your QR Codes!</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default WiFiPage;
 
 
 // File: src\services\firebase.js
@@ -1499,22 +1980,55 @@ button {
   }
 }
 
-header nav {
+.top nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 4rem;
-  border-radius: 2rem;
-  backdrop-filter: blur(1rem);
-  background: rgba(255, 255, 255, 0.9);
+  padding: 0 4rem;
 }
-header nav i a {
+.top nav i a {
   position: relative;
-  color: #000814;
+  color: white;
   margin: 0;
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: 900;
   top: -5px;
+}
+.top nav .nav-links {
+  font-weight: 900;
+  display: flex;
+  justify-content: space-between;
+}
+.top nav .nav-links i {
+  display: none;
+}
+@media (min-width: 768px) {
+  .top nav .nav-links i {
+    display: inline-block;
+  }
+}
+.top nav .nav-links svg {
+  margin: 0 0.4rem 0 0.5rem;
+}
+.top nav a, .top nav button {
+  color: white;
+  margin: 0 0 0 4rem;
+  padding: 0;
+  text-decoration: none;
+  background: none;
+  border: none;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+}
+header nav {
+  display: inline-block;
+  padding: 0rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(0, 8, 20, 0.3);
 }
 header nav .nav-links {
   font-weight: 900;
@@ -1533,12 +2047,16 @@ header nav .nav-links svg {
   margin: 0 0.4rem 0 0.5rem;
 }
 header nav a, header nav button {
-  color: #000814;
-  margin: 0 1rem 0 0;
-  padding: 0;
+  color: white;
+  margin: 0;
+  padding: 4rem 6rem;
   text-decoration: none;
   background: none;
   border: none;
+  border-radius: 2rem;
+}
+header nav a.active, header nav button.active {
+  background-color: rgba(0, 8, 20, 0.5);
 }
 
 .hero {
@@ -1579,7 +2097,7 @@ body {
 }
 @media (min-width: 576px) {
   body {
-    padding: 8rem;
+    padding: 2rem 8rem;
   }
 }
 
@@ -1589,9 +2107,14 @@ body {
   row-gap: 4rem;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
-  grid-template-areas: "header" "hero" "qr" "footer";
+  grid-template-areas: "top" "header" "hero" "qr" "footer";
   min-height: 100vh;
   max-width: 1600px;
+}
+
+.top {
+  grid-area: top;
+  padding: 0;
 }
 
 header {
@@ -2101,6 +2624,14 @@ footer {
 }
 .qr-user .qr-codes .qr-codes-grid .qr-code .tags-container .tag:first-child {
   margin: 0.5rem 0;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .qr-type {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 2rem;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: rgba(0, 8, 20, 0.4);
 }
 .qr-user .qr-codes .qr-codes-grid .qr-code button {
   display: inline;

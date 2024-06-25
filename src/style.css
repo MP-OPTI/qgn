@@ -159,22 +159,55 @@ button {
   }
 }
 
-header nav {
+.top nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 4rem;
-  border-radius: 2rem;
-  backdrop-filter: blur(1rem);
-  background: rgba(255, 255, 255, 0.9);
+  padding: 0 4rem;
 }
-header nav i a {
+.top nav i a {
   position: relative;
-  color: #000814;
+  color: white;
   margin: 0;
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: 900;
   top: -5px;
+}
+.top nav .nav-links {
+  font-weight: 900;
+  display: flex;
+  justify-content: space-between;
+}
+.top nav .nav-links i {
+  display: none;
+}
+@media (min-width: 768px) {
+  .top nav .nav-links i {
+    display: inline-block;
+  }
+}
+.top nav .nav-links svg {
+  margin: 0 0.4rem 0 0.5rem;
+}
+.top nav a, .top nav button {
+  color: white;
+  margin: 0 0 0 4rem;
+  padding: 0;
+  text-decoration: none;
+  background: none;
+  border: none;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+}
+header nav {
+  display: inline-block;
+  padding: 0rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(0, 8, 20, 0.3);
 }
 header nav .nav-links {
   font-weight: 900;
@@ -193,12 +226,16 @@ header nav .nav-links svg {
   margin: 0 0.4rem 0 0.5rem;
 }
 header nav a, header nav button {
-  color: #000814;
-  margin: 0 1rem 0 0;
-  padding: 0;
+  color: white;
+  margin: 0;
+  padding: 4rem 6rem;
   text-decoration: none;
   background: none;
   border: none;
+  border-radius: 2rem;
+}
+header nav a.active, header nav button.active {
+  background-color: rgba(0, 8, 20, 0.5);
 }
 
 .hero {
@@ -239,7 +276,7 @@ body {
 }
 @media (min-width: 576px) {
   body {
-    padding: 8rem;
+    padding: 2rem 8rem;
   }
 }
 
@@ -249,9 +286,14 @@ body {
   row-gap: 4rem;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
-  grid-template-areas: "header" "hero" "qr" "footer";
+  grid-template-areas: "top" "header" "hero" "qr" "footer";
   min-height: 100vh;
   max-width: 1600px;
+}
+
+.top {
+  grid-area: top;
+  padding: 0;
 }
 
 header {
@@ -761,6 +803,14 @@ footer {
 }
 .qr-user .qr-codes .qr-codes-grid .qr-code .tags-container .tag:first-child {
   margin: 0.5rem 0;
+}
+.qr-user .qr-codes .qr-codes-grid .qr-code .qr-type {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 2rem;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: rgba(0, 8, 20, 0.4);
 }
 .qr-user .qr-codes .qr-codes-grid .qr-code button {
   display: inline;

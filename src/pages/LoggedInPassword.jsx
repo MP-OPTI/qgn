@@ -62,11 +62,11 @@ const LoggedInHome = () => {
     <div className="qr-user">
 
       <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleSubmit} isLoggedIn={!!user} />
+        <QRCodePasswordForm handleSubmit={handleSubmit} isLoggedIn={!!user} />
       </div>
- 
+
       <div className="qr-userhero">
-        <h2>#1 Copy url</h2>
+        <h2>#1 Press Generate Password</h2>
         <h2>#2 Get QR Code</h2>
         <h2>#3 Store them for later</h2>
         <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
