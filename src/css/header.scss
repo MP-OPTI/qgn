@@ -28,11 +28,18 @@ header {
     a, button {
       color: $white;
       margin: 0;
-      padding: 4rem 6rem;
+      padding: 3rem 2rem;
       text-decoration: none;
       background: none;
       border: none;
       border-radius: $border-radius;
+
+      @media (min-width: $breakpoint-small) {
+        padding: 4rem 4rem;
+      }
+      @media (min-width: $breakpoint-medium) {
+        padding: 4rem 6rem;
+      }
 
       &.active {
         background-color: rgba($black, .5);

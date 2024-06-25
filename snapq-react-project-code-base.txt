@@ -657,20 +657,22 @@ import React from 'react';
 
 const SearchBar = ({ searchQuery, setSearchQuery, qrType, setQrType }) => {
   return (
-    <div className="search-bar">
-      <input
-        type="text"
-        placeholder="Search by URL, title, or tags"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
+    <>
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search by URL, title, or tags"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        </div>
       <select value={qrType} onChange={(e) => setQrType(e.target.value)}>
         <option value="">All Types</option>
         <option value="URL">URL</option>
         <option value="WiFi">WiFi</option>
         <option value="Password">Password</option>
       </select>
-    </div>
+    </>
   );
 };
 
@@ -2096,11 +2098,21 @@ header nav .nav-links svg {
 header nav a, header nav button {
   color: white;
   margin: 0;
-  padding: 4rem 6rem;
+  padding: 3rem 2rem;
   text-decoration: none;
   background: none;
   border: none;
   border-radius: 2rem;
+}
+@media (min-width: 576px) {
+  header nav a, header nav button {
+    padding: 4rem 4rem;
+  }
+}
+@media (min-width: 768px) {
+  header nav a, header nav button {
+    padding: 4rem 6rem;
+  }
 }
 header nav a.active, header nav button.active {
   background-color: rgba(0, 8, 20, 0.5);
@@ -2559,16 +2571,15 @@ footer {
 .qr-user .qr-search {
   grid-area: qr-search;
   display: grid;
-  grid-template-columns: 1fr 1fr;
   grid-template-columns: auto;
-  grid-template-areas: "search" "filter";
+  grid-template-areas: "search" "select" "filter";
   align-items: center;
   padding: 10rem 0 0 0;
 }
 @media (min-width: 992px) {
   .qr-user .qr-search {
     grid-template-rows: auto;
-    grid-template-areas: "search filter";
+    grid-template-areas: "search filter" "select select";
   }
 }
 @media (min-width: 768px) {
@@ -2580,9 +2591,16 @@ footer {
   grid-area: search;
   font-weight: 900;
 }
+.qr-user .qr-search select {
+  grid-area: select;
+  width: 20rem;
+  font-weight: 900;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+}
 .qr-user .qr-search .filter {
   grid-area: filter;
-  justify-self: end;
+  justify-self: start;
   margin: 2rem 0;
 }
 .qr-user .qr-search .filter > svg {
@@ -2590,6 +2608,7 @@ footer {
 }
 @media (min-width: 768px) {
   .qr-user .qr-search .filter {
+    justify-self: end;
     margin: 0;
   }
 }
