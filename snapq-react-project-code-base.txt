@@ -283,7 +283,7 @@ import { QRCode } from 'react-qrcode-logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import qLogo from '../../assets/q-logo.webp';
 import useDownloadQRCode from '../../hooks/useDownloadQRCode';
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring } from '@react-spring/web';
 
 const truncateUrl = (url) => {
   return url.length > 20 ? `${url.slice(0, 20)}...` : url;
@@ -706,7 +706,6 @@ export default SearchBar;
 //AccountDeletion.jsx
 import React, { useState } from 'react';
 import { deleteUser } from 'firebase/auth';
-import { useToast } from '../../contexts/ToastProvider';
 
 const AccountDeletion = ({ user, navigate, addToast }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -1692,7 +1691,6 @@ export default Register;
 // src/pages/Settings.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../services/firebase';
 import { useToast } from '../contexts/ToastProvider';
 import { useAuth } from '../hooks/useAuth';
 import EmailStatus from '../components/Settings/EmailStatus';

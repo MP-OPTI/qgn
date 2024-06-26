@@ -5,7 +5,7 @@ import { QRCode } from 'react-qrcode-logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import qLogo from '../../assets/q-logo.webp';
 import useDownloadQRCode from '../../hooks/useDownloadQRCode';
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring } from '@react-spring/web';
 
 const truncateUrl = (url) => {
   return url.length > 20 ? `${url.slice(0, 20)}...` : url;

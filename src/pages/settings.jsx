@@ -1,7 +1,6 @@
 // src/pages/Settings.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../services/firebase';
 import { useToast } from '../contexts/ToastProvider';
 import { useAuth } from '../hooks/useAuth';
 import EmailStatus from '../components/Settings/EmailStatus';

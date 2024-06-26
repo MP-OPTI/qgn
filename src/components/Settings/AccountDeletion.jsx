@@ -1,7 +1,6 @@
 //AccountDeletion.jsx
 import React, { useState } from 'react';
 import { deleteUser } from 'firebase/auth';
-import { useToast } from '../../contexts/ToastProvider';
 
 const AccountDeletion = ({ user, navigate, addToast }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
