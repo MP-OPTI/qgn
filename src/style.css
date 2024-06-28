@@ -335,6 +335,7 @@ footer p {
 
 body {
   height: auto;
+  min-height: 100vh;
   background: linear-gradient(to top, rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.8), rgba(0, 8, 20, 0.6)), url(../../assets/bg1.jpg) no-repeat top center;
   background-size: cover;
   padding: 2rem;
@@ -580,43 +581,42 @@ footer {
   }
 }
 
-.login, .register {
+.blog {
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.login .form-container, .register .form-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto;
-  border-radius: 2rem;
-  max-width: 400px;
-  width: 100%;
-}
-.login .form-container h2, .register .form-container h2 {
-  text-align: center;
-  font-size: 2rem;
-  margin-bottom: 4rem;
-}
-.login .form-container input, .register .form-container input {
-  width: 100%;
-}
-.login .form-container .checkbox-container, .register .form-container .checkbox-container {
+.blog form {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  margin-bottom: 20px;
 }
-.login .form-container .checkbox-container .custom-checkbox, .register .form-container .checkbox-container .custom-checkbox {
-  margin-right: 0.5rem;
+.blog form input,
+.blog form textarea {
+  margin-bottom: 10px;
+  padding: 10px;
 }
-.login .form-container .checkbox-container label, .register .form-container .checkbox-container label {
-  position: relative;
-  font-size: 1.6rem;
+.blog .posts .post {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
 }
-.login .form-container .checkbox-container label[for=rememberMe], .register .form-container .checkbox-container label[for=rememberMe] {
-  top: 1.3rem;
+.blog .posts .post h2 {
+  margin: 0 0 10px 0;
 }
-.login .form-container button, .register .form-container button {
-  margin: 4rem 0;
+.blog .posts .post p {
+  margin: 0 0 10px 0;
+}
+.blog .posts .post small {
+  display: block;
+  margin-bottom: 10px;
+}
+.blog .posts .post div {
+  display: flex;
+  gap: 10px;
+}
+.blog .posts .post button {
+  padding: 5px 10px;
 }
 
 .qr-nonuser {

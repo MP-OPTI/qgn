@@ -26,12 +26,14 @@ const QRCodeWiFiForm = ({ handleSubmit, isLoggedIn }) => {
         placeholder="Enter SSID"
         value={ssid}
         onChange={(e) => setSsid(e.target.value)}
+        autoComplete="off"
       />
       <input
         type="password"
         placeholder="Enter Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        autoComplete="off"
       />
       {isLoggedIn && (
       <input
@@ -39,6 +41,7 @@ const QRCodeWiFiForm = ({ handleSubmit, isLoggedIn }) => {
         placeholder="Tag1, Tag2, etc."
         value={tags}
         onChange={(e) => setTags(e.target.value)}
+        autoComplete="off"
       />
       )}
       <button type="submit">Generate WiFi QR Code</button>

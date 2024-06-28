@@ -1,8 +1,10 @@
-//Register.jsx
+// src/pages/Register.jsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../services/firebase';
 import { useToast } from '../contexts/ToastProvider';
 import RegisterForm from '../components/Register/RegisterForm';
 
@@ -15,7 +17,15 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Set default role as 'User' in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        role: 'User', // Default role
+      });
+
       addToast('Registration successful!', 'success');
       navigate('/');
     } catch (error) {
@@ -37,4 +47,3 @@ const Register = () => {
 };
 
 export default Register;
-

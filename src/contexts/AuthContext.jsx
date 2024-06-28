@@ -1,10 +1,14 @@
-// src/hooks/useAuth.js
-import { useState, useEffect } from 'react';
+// src/contexts/AuthContext.jsx
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 
-export const useAuth = () => {
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -14,9 +18,10 @@ export const useAuth = () => {
         const docRef = doc(db, 'users', currentUser.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setUser({ ...currentUser, role: docSnap.data().role });
+          const userData = { ...currentUser, role: docSnap.data().role };
+          setUser(userData);
         } else {
-          console.error("No such document!");
+          setUser(null);
         }
       } else {
         setUser(null);
@@ -24,8 +29,12 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
-  return { user, loading };
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

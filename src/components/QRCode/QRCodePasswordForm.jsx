@@ -48,6 +48,7 @@ const QRCodePasswordForm = ({ handleSubmit, isLoggedIn }) => {
         placeholder="Tag1, Tag2, etc."
         value={tags}
         onChange={(e) => setTags(e.target.value)}
+        autoComplete="off"
       />
       )}
       <button type="submit">Get Password QR Code</button>

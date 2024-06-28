@@ -26,6 +26,7 @@ const QRCodeForm = ({ handleSubmit, isLoggedIn }) => {
         placeholder="Enter URL for the QR Code"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
+        autoComplete="off"
       />
       {isLoggedIn && (
         <>
@@ -34,12 +35,14 @@ const QRCodeForm = ({ handleSubmit, isLoggedIn }) => {
             placeholder="Enter title/name"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            autoComplete="off"
           />
           <input
             type="text"
             placeholder="Tag1, Tag2, etc."
             value={tags}
             onChange={(e) => setTags(e.target.value)}
+            autoComplete="off"
           />
         </>
       )}

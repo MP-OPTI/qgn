@@ -10,7 +10,8 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "watch-export": "nodemon",
-    "postbuild": "node export-all.mjs"
+    "postbuild": "node export-all.mjs",
+    "start": "node src/updateUserRoles.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
@@ -19,6 +20,7 @@
     "@react-spring/web": "^9.7.3",
     "axios": "^1.7.2",
     "dompurify": "^3.1.5",
+    "dotenv": "^16.4.5",
     "firebase": "^10.12.2",
     "lazy": "^1.0.11",
     "qrcode.react": "^3.1.0",
