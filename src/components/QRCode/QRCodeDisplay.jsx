@@ -3,7 +3,7 @@
 import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import qLogo from '../../assets/q-logo.webp';
+import qLogo from '../../assets/q-logo.png';
 import useDownloadQRCode from '../../hooks/useDownloadQRCode';
 import { useSpring } from '@react-spring/web';
 

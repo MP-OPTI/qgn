@@ -281,7 +281,7 @@ export default LoginForm;
 import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import qLogo from '../../assets/q-logo.webp';
+import qLogo from '../../assets/q-logo.png';
 import useDownloadQRCode from '../../hooks/useDownloadQRCode';
 import { useSpring } from '@react-spring/web';
 
@@ -2240,7 +2240,7 @@ footer p {
 
 body {
   height: auto;
-  background: linear-gradient(to top, rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.8), rgba(0, 8, 20, 0.6)), url(../../assets/bg1.webp) no-repeat top center;
+  background: linear-gradient(to top, rgba(0, 8, 20, 0.9), rgba(0, 8, 20, 0.8), rgba(0, 8, 20, 0.6)), url(../../assets/bg1.jpg) no-repeat top center;
   background-size: cover;
   padding: 2rem;
 }
