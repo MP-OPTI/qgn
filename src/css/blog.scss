@@ -1,0 +1,49 @@
+// File: src/styles/blog.scss
+
+.login, .register {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  
+    .form-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      border-radius: $border-radius;
+      max-width: 400px;
+      width: 100%;
+  
+      h2 {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 4rem;
+      }
+  
+      input {
+        width: 100%;
+      }
+  
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+  
+        .custom-checkbox {
+          margin-right: 0.5rem;
+        }
+  
+        label {
+            position: relative;
+            font-size: 1.6rem;
+            &[for="rememberMe"] {
+                top: 1.3rem;
+            }
+        }
+      }
+  
+      button {
+        margin: 4rem 0;
+
+      }
+    }
+  }
+  

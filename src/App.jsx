@@ -5,12 +5,14 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
 import { ToastProvider, useToast } from './contexts/ToastProvider';
-import { auth } from './services/firebase';
+import { auth, db } from './services/firebase'; // Import db from firebase configuration
+import { doc, getDoc } from 'firebase/firestore'; // Import Firestore functions
 import './fontawesome';
 import URLPage from './pages/URL';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
+import Blog from './pages/Blog';
 import LoggedInHome from './pages/LoggedInHome';
 import LoggedInWiFi from './pages/LoggedInWiFi';
 import LoggedInPassword from './pages/LoggedInPassword';
@@ -18,6 +20,8 @@ import WiFiPage from './pages/WiFi';
 import PasswordPage from './pages/Password';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
+import AdminPage from './pages/AdminPage'; // Import AdminPage
+import ProtectedRoute from './components/ProtectedRoute';
 
 const MainApp = () => {
   const [user, setUser] = useState(null);
@@ -26,8 +30,16 @@ const MainApp = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUser({ ...currentUser, role: docSnap.data().role });
+        }
+      } else {
+        setUser(null);
+      }
     });
 
     return () => unsubscribe();
@@ -94,11 +106,13 @@ const MainApp = () => {
             <Route path="/" element={user ? <Navigate to="/url" /> : <URLPage />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings" element={<ProtectedRoute user={user}><Settings /></ProtectedRoute>} />
+            <Route path="/blog" element={<Blog />} />
             <Route path="/home" element={user ? <LoggedInHome /> : <Navigate to="/login" />} />
             <Route path="/url" element={user ? <LoggedInHome /> : <URLPage />} />
             <Route path="/wifi" element={user ? <LoggedInWiFi /> : <WiFiPage />} />
             <Route path="/password" element={user ? <LoggedInPassword /> : <PasswordPage />} />
+            <Route path="/admin" element={<ProtectedRoute user={user} role="Admin"><AdminPage /></ProtectedRoute>} />
           </Routes>
         </div>
 

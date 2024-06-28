@@ -1,4 +1,4 @@
-// File: src/components/Checkbox/CustomCheckbox.jsx
+
 import React from 'react';
 
 const CustomCheckbox = ({ checked, onChange }) => {

@@ -374,6 +374,7 @@ header {
 .qr {
   grid-area: qr;
   padding: 2rem 0;
+  min-height: 50vh;
 }
 
 footer {
@@ -577,6 +578,45 @@ footer {
   .settings .delete-account h3 {
     max-width: 40rem;
   }
+}
+
+.login, .register {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.login .form-container, .register .form-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  border-radius: 2rem;
+  max-width: 400px;
+  width: 100%;
+}
+.login .form-container h2, .register .form-container h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 4rem;
+}
+.login .form-container input, .register .form-container input {
+  width: 100%;
+}
+.login .form-container .checkbox-container, .register .form-container .checkbox-container {
+  display: flex;
+  align-items: center;
+}
+.login .form-container .checkbox-container .custom-checkbox, .register .form-container .checkbox-container .custom-checkbox {
+  margin-right: 0.5rem;
+}
+.login .form-container .checkbox-container label, .register .form-container .checkbox-container label {
+  position: relative;
+  font-size: 1.6rem;
+}
+.login .form-container .checkbox-container label[for=rememberMe], .register .form-container .checkbox-container label[for=rememberMe] {
+  top: 1.3rem;
+}
+.login .form-container button, .register .form-container button {
+  margin: 4rem 0;
 }
 
 .qr-nonuser {
@@ -923,6 +963,34 @@ footer {
 }
 .qr-user .inittxt {
   width: 100%;
+}
+
+.admin table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+.admin table, .admin th, .admin td {
+  border: 1px solid #ddd;
+}
+.admin th, .admin td {
+  padding: 12px;
+  text-align: left;
+}
+.admin th {
+  background-color: #f2f2f2;
+}
+.admin button {
+  padding: 6px 12px;
+  margin: 0 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.admin button:hover {
+  background-color: #0056b3;
 }
 
 /*# sourceMappingURL=style.css.map */
