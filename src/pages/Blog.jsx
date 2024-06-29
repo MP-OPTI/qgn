@@ -1,6 +1,7 @@
-// File: src/pages/Blog.jsx
+// src/pages/Blog.jsx
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Link } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,6 +15,7 @@ const Blog = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [editId, setEditId] = useState(null);
+  const [featuredImage, setFeaturedImage] = useState(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -33,15 +35,21 @@ const Blog = () => {
     const now = Timestamp.now();
     const slug = generateSlug(title);
     const titleTag = title;
+    let featuredImageUrl = '';
+
+    if (featuredImage) {
+      const storage = getStorage();
+      const storageRef = ref(storage, `featuredImages/${featuredImage.name}`);
+      await uploadBytes(storageRef, featuredImage);
+      featuredImageUrl = await getDownloadURL(storageRef);
+    }
 
     if (editId) {
-      // Edit post
       const postRef = doc(db, 'blogPosts', editId);
-      await updateDoc(postRef, { title, content, slug, titleTag, lastEditedAt: now });
-      setPosts(posts.map(post => post.id === editId ? { ...post, title, content, slug, titleTag, lastEditedAt: now } : post));
+      await updateDoc(postRef, { title, content, slug, titleTag, lastEditedAt: now, featuredImageUrl });
+      setPosts(posts.map(post => post.id === editId ? { ...post, title, content, slug, titleTag, lastEditedAt: now, featuredImageUrl } : post));
       addToast('Post updated!', 'success');
     } else {
-      // Add new post
       const newPost = {
         title,
         content,
@@ -49,7 +57,8 @@ const Blog = () => {
         titleTag,
         createdAt: now,
         lastEditedAt: now,
-        author: user.email
+        author: user.email,
+        featuredImageUrl
       };
       const docRef = await addDoc(collection(db, 'blogPosts'), newPost);
       setPosts([...posts, { id: docRef.id, ...newPost }]);
@@ -57,6 +66,7 @@ const Blog = () => {
     }
     setTitle('');
     setContent('');
+    setFeaturedImage(null);
     setEditId(null);
   };
 
@@ -64,6 +74,7 @@ const Blog = () => {
     setTitle(post.title);
     setContent(post.content);
     setEditId(post.id);
+    setFeaturedImage(null); // Optionally set the current featured image URL to state if needed
   };
 
   const handleDelete = async (id) => {
@@ -74,34 +85,47 @@ const Blog = () => {
 
   return (
     <div className="blog">
-      <h1>Blog</h1>
-      {user && (
-        <form onSubmit={handleAddPost}>
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-          <textarea
-            placeholder="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-          ></textarea>
-          <button type="submit">{editId ? 'Update Post' : 'Add Post'}</button>
-        </form>
-      )}
-      <div className="posts">
+      <div className="blog-hero">
+        <h1>qgn - QR Blog</h1>
+        <h2>Everything QR Codes</h2>
+      </div>
+      <div className="blog-edit">
+        {user && (
+          <form onSubmit={handleAddPost}>
+            <input
+              type="text"
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+            <textarea
+              placeholder="Content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+            ></textarea>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFeaturedImage(e.target.files[0])}
+            />
+            <button type="submit">{editId ? 'Update Post' : 'Add Post'}</button>
+          </form>
+        )}
+      </div>
+      <div className="blog-post-featured">
         {posts.map((post) => (
           <div key={post.id} className="post">
             <h2>{post.title}</h2>
-            <p>{post.content.substring(0, 100)}...</p>
+            {post.featuredImageUrl && <img src={post.featuredImageUrl} alt="Featured" />}
+            <div className="snippet">{post.content.substring(0, 100)}...</div>
             <Link to={`/blog/${post.slug}`}>Read more</Link>
-            <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
-            {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
-            <small> | by {post.author}</small>
+            <div className="meta">
+              <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
+              {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
+              <small> | by {post.author}</small>
+            </div>
             {user && user.email === post.author && (
               <div>
                 <button onClick={() => handleEdit(post)}>Edit</button>

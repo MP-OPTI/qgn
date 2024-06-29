@@ -1,4 +1,4 @@
-// File: src/pages/BlogPost.jsx
+// src/pages/BlogPost.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -28,10 +28,13 @@ const BlogPost = () => {
   return (
     <div className="blog-post">
       <h1>{post.title}</h1>
-      <p>{post.content}</p>
-      <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
-      {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
-      <small> | by {post.author}</small>
+      {post.featuredImageUrl && <img src={post.featuredImageUrl} alt="Featured" />}
+      <article>{post.content}</article>
+      <div className="meta">
+        <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
+        {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
+        <small> | by {post.author}</small>
+      </div>
     </div>
   );
 };

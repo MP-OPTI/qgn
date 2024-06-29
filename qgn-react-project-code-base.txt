@@ -1497,9 +1497,10 @@ export default AdminPage;
 
 
 // File: src\pages\Blog.jsx
-// File: src/pages/Blog.jsx
+// src/pages/Blog.jsx
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Link } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -1513,6 +1514,7 @@ const Blog = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [editId, setEditId] = useState(null);
+  const [featuredImage, setFeaturedImage] = useState(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -1532,15 +1534,21 @@ const Blog = () => {
     const now = Timestamp.now();
     const slug = generateSlug(title);
     const titleTag = title;
+    let featuredImageUrl = '';
+
+    if (featuredImage) {
+      const storage = getStorage();
+      const storageRef = ref(storage, `featuredImages/${featuredImage.name}`);
+      await uploadBytes(storageRef, featuredImage);
+      featuredImageUrl = await getDownloadURL(storageRef);
+    }
 
     if (editId) {
-      // Edit post
       const postRef = doc(db, 'blogPosts', editId);
-      await updateDoc(postRef, { title, content, slug, titleTag, lastEditedAt: now });
-      setPosts(posts.map(post => post.id === editId ? { ...post, title, content, slug, titleTag, lastEditedAt: now } : post));
+      await updateDoc(postRef, { title, content, slug, titleTag, lastEditedAt: now, featuredImageUrl });
+      setPosts(posts.map(post => post.id === editId ? { ...post, title, content, slug, titleTag, lastEditedAt: now, featuredImageUrl } : post));
       addToast('Post updated!', 'success');
     } else {
-      // Add new post
       const newPost = {
         title,
         content,
@@ -1548,7 +1556,8 @@ const Blog = () => {
         titleTag,
         createdAt: now,
         lastEditedAt: now,
-        author: user.email
+        author: user.email,
+        featuredImageUrl
       };
       const docRef = await addDoc(collection(db, 'blogPosts'), newPost);
       setPosts([...posts, { id: docRef.id, ...newPost }]);
@@ -1556,6 +1565,7 @@ const Blog = () => {
     }
     setTitle('');
     setContent('');
+    setFeaturedImage(null);
     setEditId(null);
   };
 
@@ -1563,6 +1573,7 @@ const Blog = () => {
     setTitle(post.title);
     setContent(post.content);
     setEditId(post.id);
+    setFeaturedImage(null); // Optionally set the current featured image URL to state if needed
   };
 
   const handleDelete = async (id) => {
@@ -1573,34 +1584,47 @@ const Blog = () => {
 
   return (
     <div className="blog">
-      <h1>Blog</h1>
-      {user && (
-        <form onSubmit={handleAddPost}>
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-          <textarea
-            placeholder="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-          ></textarea>
-          <button type="submit">{editId ? 'Update Post' : 'Add Post'}</button>
-        </form>
-      )}
-      <div className="posts">
+      <div className="blog-hero">
+        <h1>qgn - QR Blog</h1>
+        <h2>Everything QR Codes</h2>
+      </div>
+      <div className="blog-edit">
+        {user && (
+          <form onSubmit={handleAddPost}>
+            <input
+              type="text"
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+            <textarea
+              placeholder="Content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+            ></textarea>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFeaturedImage(e.target.files[0])}
+            />
+            <button type="submit">{editId ? 'Update Post' : 'Add Post'}</button>
+          </form>
+        )}
+      </div>
+      <div className="blog-post-featured">
         {posts.map((post) => (
           <div key={post.id} className="post">
             <h2>{post.title}</h2>
-            <p>{post.content.substring(0, 100)}...</p>
+            {post.featuredImageUrl && <img src={post.featuredImageUrl} alt="Featured" />}
+            <div className="snippet">{post.content.substring(0, 100)}...</div>
             <Link to={`/blog/${post.slug}`}>Read more</Link>
-            <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
-            {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
-            <small> | by {post.author}</small>
+            <div className="meta">
+              <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
+              {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
+              <small> | by {post.author}</small>
+            </div>
             {user && user.email === post.author && (
               <div>
                 <button onClick={() => handleEdit(post)}>Edit</button>
@@ -1618,7 +1642,7 @@ export default Blog;
 
 
 // File: src\pages\BlogPost.jsx
-// File: src/pages/BlogPost.jsx
+// src/pages/BlogPost.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -1648,10 +1672,13 @@ const BlogPost = () => {
   return (
     <div className="blog-post">
       <h1>{post.title}</h1>
-      <p>{post.content}</p>
-      <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
-      {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
-      <small> | by {post.author}</small>
+      {post.featuredImageUrl && <img src={post.featuredImageUrl} alt="Featured" />}
+      <article>{post.content}</article>
+      <div className="meta">
+        <small>Published on: {post.createdAt?.toDate().toLocaleDateString()}</small>
+        {post.lastEditedAt && <small> | Last edited: {post.lastEditedAt?.toDate().toLocaleDateString()}</small>}
+        <small> | by {post.author}</small>
+      </div>
     </div>
   );
 };
@@ -2536,6 +2563,19 @@ input {
   }
 }
 
+textarea {
+  display: block;
+  width: 100%;
+  padding: 2rem;
+  margin: 1.5rem 0;
+  border-radius: 1rem;
+}
+@media (min-width: 992px) {
+  textarea {
+    width: 40rem;
+  }
+}
+
 button {
   font-weight: 900;
   margin: 2rem 0;
@@ -2974,41 +3014,90 @@ footer {
 }
 
 .blog {
-  display: flex;
+  display: grid;
+  row-gap: 5rem;
+  column-gap: 5rem;
+  grid-template-columns: 100%;
+  grid-template-rows: auto;
+  grid-template-areas: "blog-hero" "blog-edit" "blog-post-featured";
+}
+.blog .blog-edit {
+  grid-area: blog-edit;
+}
+.blog .blog-edit form textarea {
+  padding: 1rem;
+}
+.blog .blog-post-featured {
+  grid-area: blog-post-featured;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   justify-content: center;
   align-items: center;
+  gap: 2rem;
 }
-.blog form {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
+.blog .blog-post-featured .post {
+  padding: 6rem 4rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(1rem);
+  background: rgba(0, 8, 20, 0.3);
 }
-.blog form input,
-.blog form textarea {
-  margin-bottom: 10px;
-  padding: 10px;
-}
-.blog .posts .post {
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-.blog .posts .post h2 {
-  margin: 0 0 10px 0;
-}
-.blog .posts .post p {
-  margin: 0 0 10px 0;
-}
-.blog .posts .post small {
+.blog .blog-post-featured .snippet {
+  width: 100%;
   display: block;
-  margin-bottom: 10px;
+  margin: 2rem 0;
+  font-size: 2rem;
 }
-.blog .posts .post div {
-  display: flex;
-  gap: 10px;
+.blog .blog-post-featured a {
+  width: 100%;
+  display: block;
+  margin: 2rem 0;
+  color: white;
 }
-.blog .posts .post button {
-  padding: 5px 10px;
+.blog .blog-post-featured .meta {
+  display: none;
+}
+.blog .blog-post-featured button {
+  font-size: 1.6rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+@media (min-width: 992px) {
+  .blog .blog-post-featured button {
+    margin: 0 1rem;
+    padding: 1rem;
+  }
+}
+.blog .blog-post-featured button:first-child {
+  margin: 0;
+}
+
+.blog-post {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(1fr));
+  gap: 6rem;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 4rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(2rem);
+  background: rgba(0, 8, 20, 0.8);
+}
+@media (min-width: 768px) {
+  .blog-post {
+    padding: 6rem;
+  }
+}
+@media (min-width: 992px) {
+  .blog-post {
+    padding: 8rem;
+  }
+}
+.blog-post article {
+  font-size: 2rem;
+  line-height: 2.5rem;
+}
+.blog-post .meta {
+  display: none;
 }
 
 .qr-nonuser {
