@@ -28,7 +28,7 @@ function exportAllCode() {
   let output = '';
 
   allFiles.forEach(file => {
-    if (file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.css')) {
+    if (file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.scss')) {
       output += `// File: ${path.relative(__dirname, file)}\n`;
       output += fs.readFileSync(file, 'utf8') + '\n\n';
     }
