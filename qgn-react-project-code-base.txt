@@ -17,8 +17,10 @@ import BlogPost from './pages/BlogPost';
 import LoggedInHome from './pages/LoggedInHome';
 import LoggedInWiFi from './pages/LoggedInWiFi';
 import LoggedInPassword from './pages/LoggedInPassword';
+import LoggedInFiles from './pages/LoggedInFilesPage'
 import WiFiPage from './pages/WiFi';
 import PasswordPage from './pages/Password';
+import FilesPage from './pages/FilesPage';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
 import AdminPage from './pages/AdminPage'; 
@@ -95,6 +97,7 @@ const MainApp = () => {
               <Link to="/url" className={location.pathname === '/url' ? 'active' : ''}>URL </Link>
               <Link to="/wifi" className={location.pathname === '/wifi' ? 'active' : ''}>WiFi </Link>
               <Link to="/password" className={location.pathname === '/password' ? 'active' : ''}>Password </Link>
+              <Link to="/files" className={location.pathname === '/files' ? 'active' : ''}>Files </Link>
             </div>
           </nav>
         </header>
@@ -113,6 +116,7 @@ const MainApp = () => {
             <Route path="/url" element={user ? <LoggedInHome /> : <URLPage />} />
             <Route path="/wifi" element={user ? <LoggedInWiFi /> : <WiFiPage />} />
             <Route path="/password" element={user ? <LoggedInPassword /> : <PasswordPage />} />
+            <Route path="/files" element={user ? <LoggedInFiles/> : <FilesPage />} />
             <Route path="/admin" element={<ProtectedRoute user={user} loading={loading} role="Admin"><AdminPage /></ProtectedRoute>} />
           </Routes>
         </div>
@@ -373,7 +377,15 @@ const QRCodeDisplay = ({
         
         <h3>{qrCode.title}</h3>
 
-        <a href={qrCode.value} target="_blank"><FontAwesomeIcon icon="link" /> {truncateUrl(qrCode.value)}</a>
+        {qrCode.type === 'File' ? (
+          <a href={qrCode.value} download>
+            <FontAwesomeIcon icon="file-download" /> {truncateUrl(qrCode.title || 'Download File')}
+          </a>
+        ) : (
+          <a href={qrCode.value} target="_blank" rel="noopener noreferrer">
+            <FontAwesomeIcon icon="link" /> {truncateUrl(qrCode.value)}
+          </a>
+        )}
         
         <div className="tags-container">
           {(qrCode.tags || []).map((tag, index) => (
@@ -408,14 +420,20 @@ const QRCodeDisplay = ({
               style={{ marginBottom: '10px' }}
             />
             <div className="approve-edit">
-              <button className="green" type="submit" style={{ marginRight: '5px' }}><FontAwesomeIcon icon="check" /></button>
-              <button className="black" onClick={() => handleEdit(null, '', '', '')}><FontAwesomeIcon icon="xmark" /></button>
+              <button className="green" type="submit" style={{ marginRight: '5px' }}>
+                <FontAwesomeIcon icon="check" />
+              </button>
+              <button className="black" onClick={() => handleEdit(null, '', '', '')}>
+                <FontAwesomeIcon icon="xmark" />
+              </button>
             </div>
           </form>
         )}
 
         <div>
-          <button className="trash" onClick={() => handleRemove(qrCode.id)}><FontAwesomeIcon icon="trash" /></button>
+          <button className="trash" onClick={() => handleRemove(qrCode.id)}>
+            <FontAwesomeIcon icon="trash" />
+          </button>
           <button onClick={() => handleEdit(qrCode.id, qrCode.value, qrCode.title, qrCode.tags || [])}>
             <FontAwesomeIcon icon="pen-to-square" />
           </button>
@@ -1025,6 +1043,51 @@ const PasswordChange = ({ currentPassword, setCurrentPassword, newPassword, setN
 };
 
 export default PasswordChange;
+
+
+// File: src\components\UploadFileForm.jsx
+// src/components/UploadFileForm.jsx
+import React, { useState } from 'react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../services/firebase';
+
+const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB in bytes
+
+const UploadFileForm = ({ handleSubmit }) => {
+  const [file, setFile] = useState(null);
+  const [error, setError] = useState('');
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile && selectedFile.size > MAX_FILE_SIZE) {
+      setError('File size exceeds 1MB. Please choose a smaller file.');
+      setFile(null);
+    } else {
+      setFile(selectedFile);
+      setError('');
+    }
+  };
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    if (file) {
+      const storageRef = ref(storage, `uploads/${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      handleSubmit(downloadURL, file.name);
+    }
+  };
+
+  return (
+    <form onSubmit={handleUpload}>
+      <input type="file" onChange={handleFileChange} />
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <button type="submit" disabled={!file}>Upload and Generate QR Code</button>
+    </form>
+  );
+};
+
+export default UploadFileForm;
 
 
 // File: src\contexts\AuthContext.jsx
@@ -2389,9 +2452,10 @@ export default useDownloadQRCode;
 // src/hooks/useQRCode.js
 import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../services/firebase'; // Make sure storage is imported from Firebase setup
 import { sanitizeInput } from '../utils/sanitizeInput';
-// src/hooks/useQRCode.js
+
 export const useQRCode = (user) => {
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -2423,8 +2487,19 @@ export const useQRCode = (user) => {
     return () => unsubscribe();
   }, [user]);
 
-  const handleSubmit = async (url, title, tags = '', type) => {
-    const sanitizedUrl = sanitizeInput(url);
+  // Modified handleSubmit to support file uploads
+  const handleSubmit = async (urlOrFile, title, tags = '', type) => {
+    let fileUrl = urlOrFile;
+
+    // Check if urlOrFile is a File object (file upload)
+    if (urlOrFile instanceof File) {
+      const storageRef = ref(storage, `uploads/${urlOrFile.name}`);
+      await uploadBytes(storageRef, urlOrFile);
+      fileUrl = await getDownloadURL(storageRef);
+    }
+
+    const sanitizedUrl = sanitizeInput(fileUrl);
+
     if (sanitizedUrl.trim() && user) {
       try {
         await addDoc(collection(db, 'qrCodes'), {
@@ -2432,7 +2507,7 @@ export const useQRCode = (user) => {
           value: sanitizedUrl,
           title: title || 'Untitled',
           tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          type,
+          type: type || 'URL', // Default type to 'URL' if not provided
           createdAt: new Date(),
         });
       } catch (error) {
@@ -2901,6 +2976,200 @@ const BlogPost = () => {
 export default BlogPost;
 
 
+// File: src\pages\FilesPage.jsx
+// src/pages/FilesPage.jsx
+import React, { useState } from 'react';
+import UploadFileForm from '../components/UploadFileForm';
+import QRCodeList from '../components/QRCode/QRCodeList';
+import SearchBar from '../components/SearchBar';
+import FilterIcons from '../components/Filter/FilterIcons';
+import { useAuth } from '../hooks/useAuth';
+import { useQRCode } from '../hooks/useQRCode';
+
+const FilesPage = () => {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [qrType] = useState('File');  // Set to 'File' to filter only file-based QR codes
+  const [filter, setFilter] = useState('newest');
+  const {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    editingTitle,
+    editingTags,
+    setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  } = useQRCode(user);
+
+  const filteredQRCodes = qrCodes
+    .filter(qrCode => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearchQuery = (
+        qrCode.value.toLowerCase().includes(searchLower) ||
+        qrCode.title.toLowerCase().includes(searchLower) ||
+        (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
+      );
+      const matchesQrType = qrType === '' || qrCode.type === qrType;
+      return matchesSearchQuery && matchesQrType;
+    })
+    .sort((a, b) => {
+      if (filter === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (filter === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else if (filter === 'az') {
+        return a.title.localeCompare(b.title);
+      } else if (filter === 'za') {
+        return b.title.localeCompare(a.title);
+      } else if (filter === 'mostTagged') {
+        return (b.tags?.length || 0) - (a.tags?.length || 0);
+      } else if (filter === 'leastTagged') {
+        return (a.tags?.length || 0) - (b.tags?.length || 0);
+      } else if (filter === 'recentlyUpdated') {
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      }
+      return 0;
+    });
+
+  return (
+    <div className="qr-user">
+      <div className="qr-generator">
+        <UploadFileForm handleSubmit={handleSubmit} />
+      </div>
+
+      <div className="qr-userhero">
+        <h2>#1 Upload your file</h2>
+        <h2>#2 Get QR Code</h2>
+        <h2>#3 Store them for later</h2>
+        <h4>* You can use titles and tags to better find your QR codes in the future.</h4>
+      </div>
+
+    </div>
+  );
+};
+
+export default FilesPage;
+
+
+// File: src\pages\LoggedInFilesPage.jsx
+// src/pages/FilesPage.jsx
+import React, { useState } from 'react';
+import UploadFileForm from '../components/UploadFileForm';
+import QRCodeList from '../components/QRCode/QRCodeList';
+import SearchBar from '../components/SearchBar';
+import FilterIcons from '../components/Filter/FilterIcons';
+import { useAuth } from '../hooks/useAuth';
+import { useQRCode } from '../hooks/useQRCode';
+
+const FilesPage = () => {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [qrType] = useState('File');  // Set to 'File' to filter only file-based QR codes
+  const [filter, setFilter] = useState('newest');
+  const {
+    qrCodes,
+    loading,
+    editingId,
+    editingUrl,
+    editingTitle,
+    editingTags,
+    setEditingUrl,
+    setEditingTitle,
+    setEditingTags,
+    handleSubmit,
+    handleRemove,
+    handleEdit,
+    handleEditSubmit
+  } = useQRCode(user);
+
+  const filteredQRCodes = qrCodes
+    .filter(qrCode => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearchQuery = (
+        qrCode.value.toLowerCase().includes(searchLower) ||
+        qrCode.title.toLowerCase().includes(searchLower) ||
+        (qrCode.tags || []).some(tag => tag.toLowerCase().includes(searchLower))
+      );
+      const matchesQrType = qrType === '' || qrCode.type === qrType;
+      return matchesSearchQuery && matchesQrType;
+    })
+    .sort((a, b) => {
+      if (filter === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (filter === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else if (filter === 'az') {
+        return a.title.localeCompare(b.title);
+      } else if (filter === 'za') {
+        return b.title.localeCompare(a.title);
+      } else if (filter === 'mostTagged') {
+        return (b.tags?.length || 0) - (a.tags?.length || 0);
+      } else if (filter === 'leastTagged') {
+        return (a.tags?.length || 0) - (b.tags?.length || 0);
+      } else if (filter === 'recentlyUpdated') {
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      }
+      return 0;
+    });
+
+  return (
+    <div className="qr-user">
+      <div className="qr-generator">
+        <UploadFileForm handleSubmit={handleSubmit} />
+      </div>
+
+      <div className="qr-userhero">
+        <h2>#1 Upload your file</h2>
+        <h2>#2 Get QR Code</h2>
+        <h2>#3 Store them for later</h2>
+        <h4>* You can use titles and tags to better find your QR codes in the future.</h4>
+      </div>
+
+      <div className="qr-search">
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          qrType={qrType}
+        />
+        <FilterIcons filter={filter} setFilter={setFilter} />
+      </div>
+      
+      <div className="qr-codes">
+        {user && (
+          <div>
+            {loading ? (
+              <p>Loading QR codes...</p>
+            ) : (
+              <QRCodeList
+                qrCodes={filteredQRCodes}
+                editingId={editingId}
+                editingUrl={editingUrl}
+                editingTitle={editingTitle}
+                editingTags={editingTags}
+                setEditingUrl={setEditingUrl}
+                setEditingTitle={setEditingTitle}
+                setEditingTags={setEditingTags}
+                handleRemove={handleRemove}
+                handleEdit={handleEdit}
+                handleEditSubmit={handleEditSubmit}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FilesPage;
+
+
 // File: src\pages\LoggedInHome.jsx
 // src/pages/LoggedInHome.jsx
 import React, { useState } from 'react';
@@ -2969,10 +3238,10 @@ const LoggedInHome = () => {
       </div>
 
       <div className="qr-userhero">
-        <h2>#1 Copy url</h2>
+        <h2>#1 Upload a file or copy a URL</h2>
         <h2>#2 Get QR Code</h2>
         <h2>#3 Store them for later</h2>
-        <h4>* You can use titles and tags, to better find your qr-codes in the future.</h4>
+        <h4>* You can use titles and tags to better find your QR codes in the future.</h4>
       </div>
 
       <div className="qr-search">
@@ -3613,6 +3882,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -3627,8 +3897,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app);
+const storage = getStorage(app);
 
-export { auth, db, functions, firebaseConfig };
+export { auth, db, functions, firebaseConfig, storage };
 
 
 // File: src\style.scss

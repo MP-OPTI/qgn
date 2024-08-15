@@ -51,7 +51,15 @@ const QRCodeDisplay = ({
         
         <h3>{qrCode.title}</h3>
 
-        <a href={qrCode.value} target="_blank"><FontAwesomeIcon icon="link" /> {truncateUrl(qrCode.value)}</a>
+        {qrCode.type === 'File' ? (
+          <a href={qrCode.value} download>
+            <FontAwesomeIcon icon="file-download" /> {truncateUrl(qrCode.title || 'Download File')}
+          </a>
+        ) : (
+          <a href={qrCode.value} target="_blank" rel="noopener noreferrer">
+            <FontAwesomeIcon icon="link" /> {truncateUrl(qrCode.value)}
+          </a>
+        )}
         
         <div className="tags-container">
           {(qrCode.tags || []).map((tag, index) => (
@@ -86,14 +94,20 @@ const QRCodeDisplay = ({
               style={{ marginBottom: '10px' }}
             />
             <div className="approve-edit">
-              <button className="green" type="submit" style={{ marginRight: '5px' }}><FontAwesomeIcon icon="check" /></button>
-              <button className="black" onClick={() => handleEdit(null, '', '', '')}><FontAwesomeIcon icon="xmark" /></button>
+              <button className="green" type="submit" style={{ marginRight: '5px' }}>
+                <FontAwesomeIcon icon="check" />
+              </button>
+              <button className="black" onClick={() => handleEdit(null, '', '', '')}>
+                <FontAwesomeIcon icon="xmark" />
+              </button>
             </div>
           </form>
         )}
 
         <div>
-          <button className="trash" onClick={() => handleRemove(qrCode.id)}><FontAwesomeIcon icon="trash" /></button>
+          <button className="trash" onClick={() => handleRemove(qrCode.id)}>
+            <FontAwesomeIcon icon="trash" />
+          </button>
           <button onClick={() => handleEdit(qrCode.id, qrCode.value, qrCode.title, qrCode.tags || [])}>
             <FontAwesomeIcon icon="pen-to-square" />
           </button>

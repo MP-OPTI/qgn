@@ -1,16 +1,16 @@
-// src/pages/LoggedInHome.jsx
+// src/pages/FilesPage.jsx
 import React, { useState } from 'react';
-import QRCodeForm from '../components/QRCode/QRCodeForm';
+import UploadFileForm from '../components/UploadFileForm';
 import QRCodeList from '../components/QRCode/QRCodeList';
 import SearchBar from '../components/SearchBar';
 import FilterIcons from '../components/Filter/FilterIcons';
 import { useAuth } from '../hooks/useAuth';
 import { useQRCode } from '../hooks/useQRCode';
 
-const LoggedInHome = () => {
+const FilesPage = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [qrType, setQrType] = useState('');
+  const [qrType] = useState('File');  // Set to 'File' to filter only file-based QR codes
   const [filter, setFilter] = useState('newest');
   const {
     qrCodes,
@@ -61,11 +61,11 @@ const LoggedInHome = () => {
   return (
     <div className="qr-user">
       <div className="qr-generator">
-        <QRCodeForm handleSubmit={handleSubmit} isLoggedIn={!!user} />
+        <UploadFileForm handleSubmit={handleSubmit} />
       </div>
 
       <div className="qr-userhero">
-        <h2>#1 Upload a file or copy a URL</h2>
+        <h2>#1 Upload your file</h2>
         <h2>#2 Get QR Code</h2>
         <h2>#3 Store them for later</h2>
         <h4>* You can use titles and tags to better find your QR codes in the future.</h4>
@@ -76,7 +76,6 @@ const LoggedInHome = () => {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           qrType={qrType}
-          setQrType={setQrType}
         />
         <FilterIcons filter={filter} setFilter={setFilter} />
       </div>
@@ -108,4 +107,4 @@ const LoggedInHome = () => {
   );
 };
 
-export default LoggedInHome;
+export default FilesPage;

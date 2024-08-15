@@ -124,6 +124,25 @@ exports.serveSitemap = functions.https.onRequest(async (req, res) => {
 });
 
 
+// Limit file size to 1MB
+exports.limitFileSize = functions.storage.object().onFinalize(
+    async (object) => {
+      const filePath = object.name;
+      const fileSize = object.size; // Size in bytes
+
+      const ONE_MB = 1 * 1024 * 1024; // 1MB size limit
+
+      if (fileSize > ONE_MB) {
+        console.log(
+            `File ${filePath} is too large: ${fileSize} bytes. Deleting...`,
+        );
+        await admin.storage().bucket().file(filePath).delete();
+        console.log(`File ${filePath} deleted.`);
+      }
+    },
+);
+
+
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 

@@ -1,9 +1,10 @@
 // src/hooks/useQRCode.js
 import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../services/firebase'; // Make sure storage is imported from Firebase setup
 import { sanitizeInput } from '../utils/sanitizeInput';
-// src/hooks/useQRCode.js
+
 export const useQRCode = (user) => {
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,8 +36,19 @@ export const useQRCode = (user) => {
     return () => unsubscribe();
   }, [user]);
 
-  const handleSubmit = async (url, title, tags = '', type) => {
-    const sanitizedUrl = sanitizeInput(url);
+  // Modified handleSubmit to support file uploads
+  const handleSubmit = async (urlOrFile, title, tags = '', type) => {
+    let fileUrl = urlOrFile;
+
+    // Check if urlOrFile is a File object (file upload)
+    if (urlOrFile instanceof File) {
+      const storageRef = ref(storage, `uploads/${urlOrFile.name}`);
+      await uploadBytes(storageRef, urlOrFile);
+      fileUrl = await getDownloadURL(storageRef);
+    }
+
+    const sanitizedUrl = sanitizeInput(fileUrl);
+
     if (sanitizedUrl.trim() && user) {
       try {
         await addDoc(collection(db, 'qrCodes'), {
@@ -44,7 +56,7 @@ export const useQRCode = (user) => {
           value: sanitizedUrl,
           title: title || 'Untitled',
           tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          type,
+          type: type || 'URL', // Default type to 'URL' if not provided
           createdAt: new Date(),
         });
       } catch (error) {

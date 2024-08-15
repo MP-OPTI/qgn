@@ -16,8 +16,10 @@ import BlogPost from './pages/BlogPost';
 import LoggedInHome from './pages/LoggedInHome';
 import LoggedInWiFi from './pages/LoggedInWiFi';
 import LoggedInPassword from './pages/LoggedInPassword';
+import LoggedInFiles from './pages/LoggedInFilesPage'
 import WiFiPage from './pages/WiFi';
 import PasswordPage from './pages/Password';
+import FilesPage from './pages/FilesPage';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
 import AdminPage from './pages/AdminPage'; 
@@ -94,6 +96,7 @@ const MainApp = () => {
               <Link to="/url" className={location.pathname === '/url' ? 'active' : ''}>URL </Link>
               <Link to="/wifi" className={location.pathname === '/wifi' ? 'active' : ''}>WiFi </Link>
               <Link to="/password" className={location.pathname === '/password' ? 'active' : ''}>Password </Link>
+              <Link to="/files" className={location.pathname === '/files' ? 'active' : ''}>Files </Link>
             </div>
           </nav>
         </header>
@@ -112,6 +115,7 @@ const MainApp = () => {
             <Route path="/url" element={user ? <LoggedInHome /> : <URLPage />} />
             <Route path="/wifi" element={user ? <LoggedInWiFi /> : <WiFiPage />} />
             <Route path="/password" element={user ? <LoggedInPassword /> : <PasswordPage />} />
+            <Route path="/files" element={user ? <LoggedInFiles/> : <FilesPage />} />
             <Route path="/admin" element={<ProtectedRoute user={user} loading={loading} role="Admin"><AdminPage /></ProtectedRoute>} />
           </Routes>
         </div>
